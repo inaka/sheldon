@@ -1,0 +1,16 @@
+{application, sheldon, [
+  {description, "Very Simple Erlang Spell Checker"},
+  {vsn, "0.1.0"},
+  {id, "sheldon"},
+  {registered, []},
+  {applications, [
+    kernel,
+    stdlib
+  ]},
+  {modules, []},
+  {mod, {sheldon_app, []}},
+  {maintainers,["Inaka"]},
+  {licenses,["Apache 2.0"]},
+  {links,[{"Github","https://github.com/inaka/sheldon"}]},
+  {build_tools, ["rebar3"]}
+]}.
