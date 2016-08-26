@@ -10,6 +10,5 @@ rel/example_project
 .rebar
 .idea
 _build/
-rebar.lock
 log/
 *_plt

@@ -11,14 +11,6 @@
   code_coverage/1
 ]).
 
--define(EXCLUDED_FUNS,
-  [
-    module_info,
-    all,
-    init_per_suite,
-    end_per_suite
-  ]).
-
 -type config() :: [{atom(), term()}].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,9 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec all() -> [atom()].
-all() ->
-  Exports = ?MODULE:module_info(exports),
-  [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)].
+all() -> [code_coverage].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->

@@ -5,8 +5,7 @@
   {registered, []},
   {applications, [
     kernel,
-    stdlib,
-    lager
+    stdlib
   ]},
   {modules, []},
   {mod, {sheldon_app, []}},
