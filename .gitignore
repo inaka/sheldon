@@ -8,3 +8,8 @@ ebin
 rel/example_project
 .concrete/DEV_MODE
 .rebar
+.idea
+_build/
+rebar.lock
+log/
+*_plt
