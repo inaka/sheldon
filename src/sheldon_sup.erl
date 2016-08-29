@@ -49,10 +49,29 @@ start_link() ->
 -spec init(any()) ->
   {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([]) ->
-  RestartStrategy = one_for_one,
-  MaxRestarts = 1000,
-  MaxSecondsBetweenRestarts = 3600,
 
-  SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
+  SupFlags = #{ strategy => one_for_one
+              , intensity => 1000
+              , period => 3600},
 
-  {ok, {SupFlags, []}}.
+  % Get all the languages, there are in /priv/lang/, each folder is a language
+  {ok, SupportedLang} = file:list_dir(code:priv_dir(sheldon) ++ "/lang/"),
+
+  Children = lists:map(fun get_child/1, SupportedLang),
+
+  {ok, {SupFlags, Children}}.
+
+%%%===================================================================
+%%% Internal Functions
+%%%===================================================================
+
+-spec get_child(string()) -> supervisor:child_spec().
+get_child(LangString) ->
+  Lang = list_to_atom(LangString),
+  Id = sheldon_dictionary:dictionary_name(Lang),
+  #{ id => Id
+    , start => {sheldon_dictionary, start_link, [Lang]}
+    , restart => permanent
+    , shutdown => brutal_kill
+    , type => worker
+    , modules => [sheldon_dictionary]}.
