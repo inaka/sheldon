@@ -21,18 +21,15 @@
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
 %% API
--export([
-          result/2
+-export([ result/2
         ]).
 
--export_type([
-               result/0
+-export_type([ result/0
              ]).
 
--type result() :: ok |  #{
-                           result  => [string()]
-                         , bazinga => string()
-                         }.
+-type result() :: ok | #{ result  => [string()]
+                        , bazinga => string()
+                        }.
 
 %%%===================================================================
 %%% API
@@ -41,7 +38,6 @@
 -spec result([string()], sheldon_config:config()) -> result().
 result([], _Config) -> ok;
 result(WrongWords, _Config = #{lang := Lang}) ->
-  #{
-     result  => WrongWords
+  #{ result  => WrongWords
    , bazinga => sheldon_dictionary:get_bazinga(Lang)
    }.

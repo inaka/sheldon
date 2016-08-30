@@ -20,9 +20,8 @@
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
 %% API
--export([
-          normalize/1
-        , can_be_number/1
+-export([ normalize/1
+        , is_number/1
         ]).
 
 %%%===================================================================
@@ -31,8 +30,7 @@
 
 -spec normalize(string()) -> string().
 normalize(Word) ->
-  CharToScape = [
-                  "\n"
+  CharToScape = [ "\n"
                 , "."
                 , ","
                 , ":"
@@ -52,12 +50,9 @@ normalize(Word) ->
   [WordBin | _] = re:split(Word1, "'s"),
   binary_to_list(WordBin).
 
--spec can_be_number(string()) -> boolean().
-can_be_number(Word) ->
-  case re:run(Word, "^[0-9]*$") of
-    nomatch -> false;
-    _ -> true
-  end.
+-spec is_number(string()) -> boolean().
+is_number(Word) ->
+  re:run(Word, "^[0-9]*$") =/= nomatch.
 
 %%%===================================================================
 %%% Internal Functions

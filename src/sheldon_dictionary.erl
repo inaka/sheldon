@@ -23,16 +23,14 @@
 -behaviour(gen_server).
 
 %% API
--export([
-          start_link/1
+-export([ start_link/1
         , exist_in_dictionary/2
         , dictionary_name/1
         , get_bazinga/1
         ]).
 
 %% gen_server callbacks
--export([
-          init/1
+-export([ init/1
         , handle_call/3
         , handle_cast/2
         , handle_info/2
@@ -41,8 +39,7 @@
         ]).
 
 
--export_type([
-                language/0
+-export_type([ language/0
              ]).
 
 -type language() :: eng.
@@ -51,8 +48,8 @@
 %%% API
 %%%===================================================================
 
--spec(start_link(language()) ->
-  {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
+-spec start_link(language()) ->
+  {ok, Pid :: pid()} | ignore | {error, Reason :: term()}.
 start_link(Lang) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [Lang], []).
 
@@ -60,10 +57,7 @@ start_link(Lang) ->
 exist_in_dictionary(Lang, Word) ->
   DictName = dictionary_name(Lang),
   LowerWord = string:to_lower(Word),
-  case ets:lookup(DictName, LowerWord) of
-    [] -> false;
-    _  -> true
-  end.
+  ets:lookup(DictName, LowerWord) =/= [].
 
 -spec get_bazinga(language()) -> string().
 get_bazinga(Lang) ->
@@ -74,45 +68,49 @@ get_bazinga(Lang) ->
 
 -spec dictionary_name(language()) -> atom().
 dictionary_name(Lang) ->
-  Bin = <<(atom_to_binary(sheldon, utf8))/binary, "_",
-  (atom_to_binary(Lang, utf8))/binary>>,
+  Bin = << (atom_to_binary(sheldon, utf8))/binary
+         , "_"
+         , (atom_to_binary(Lang, utf8))/binary>>,
   binary_to_atom(Bin, utf8).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
--spec(init([language()]) -> {ok, State :: map()}).
+-spec init([language()]) -> {ok, State :: map()}.
 init([Lang]) ->
   ok = learn_language(Lang),
   ok = set_bazingas(Lang),
   {ok, #{}}.
 
--spec(  handle_call(Request :: term()
-      , From :: {pid()
-      , Tag :: term()}
-      , State) -> {reply, ok, State}).
+-spec handle_call( Request :: term()
+                 , From    :: {pid()
+                 , Tag     :: term()}
+                 , State
+                 ) -> {reply, ok, State}.
 handle_call(_Request, _From, State) ->
   {reply, ok, State}.
 
--spec(handle_cast(Request :: term(), State) ->
-  {noreply, State}).
+-spec handle_cast(Request :: term(), State) ->
+  {noreply, State}.
 handle_cast(_Request, State) ->
   {noreply, State}.
 
--spec(handle_info(Info :: timeout() | term(), State) ->
-  {noreply, State}).
+-spec handle_info(Info :: timeout() | term(), State) ->
+  {noreply, State}.
 handle_info(_Info, State) ->
   {noreply, State}.
 
--spec(terminate(  Reason :: (normal | shutdown | {shutdown, term()} | term())
-                , State :: map()) -> term()).
+-spec terminate( Reason :: (normal | shutdown | {shutdown, term()} | term())
+               , State  :: map()
+               ) -> term().
 terminate(_Reason, _State) ->
   ok.
 
--spec(  code_change(OldVsn :: term() | {down, term()}
-      , State
-      , Extra :: term()) -> {ok, State}).
+-spec code_change(OldVsn :: term() | {down, term()}
+                 , State
+                 , Extra :: term()
+                 ) -> {ok, State}.
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
 
@@ -125,7 +123,8 @@ learn_language(Lang) ->
   LangSource = [ code:priv_dir(sheldon)
                , "/lang/"
                , atom_to_list(Lang)
-               , "/dictionary.txt"],
+               , "/dictionary.txt"
+               ],
   DictionaryName = dictionary_name(Lang),
   ok = fill_ets(DictionaryName, LangSource),
   ok.
@@ -135,15 +134,17 @@ set_bazingas(Lang) ->
   BazingaSource = [ code:priv_dir(sheldon)
                   , "/lang/"
                   , atom_to_list(Lang)
-                  , "/bazinga.txt"],
+                  , "/bazinga.txt"
+                  ],
   BazingaName = bazinga_name(Lang),
   ok = fill_ets(BazingaName, BazingaSource),
   ok.
 
 -spec bazinga_name(language()) -> atom().
 bazinga_name(Lang) ->
-  Bin = <<(atom_to_binary(bazinga, utf8))/binary, "_",
-  (atom_to_binary(Lang, utf8))/binary>>,
+  Bin = << (atom_to_binary(bazinga, utf8))/binary
+         , "_"
+         , (atom_to_binary(Lang, utf8))/binary>>,
   binary_to_atom(Bin, utf8).
 
 -spec fill_ets(atom(), term()) -> ok.

@@ -1,14 +1,12 @@
 -module(sheldon_SUITE).
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
--export([
-          all/0
+-export([ all/0
         , init_per_suite/1
         , end_per_suite/1
         ]).
 
--export([
-          basic_check/1
+-export([ basic_check/1
         , iodata_check/1
         ]).
 
@@ -19,8 +17,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec all() -> [atom()].
-all() ->  [
-            basic_check
+all() ->  [ basic_check
           , iodata_check
           ].
 
@@ -64,11 +61,14 @@ iodata_check(_Config) ->
   ok = sheldon:check(["Hi, I am (testing the spelling) checker"]),
   ok = sheldon:check([ $H
                      , [<<"i">>, " I am"]
-                     ,  <<" (testing the spelling) checker">>]),
+                     , <<" (testing the spelling) checker">>
+                     ]),
   #{result := ["thedfs"]} =
     sheldon:check([ "Hi, I am \'tes"
                   , <<"ting\' the">>
                   , $d
                   , $f
-                  , "s.,; spelling checker"]),
+                  , "s.,; spelling checker"
+                  ]),
+  ok = sheldon:check(<<"Hi, I am (testing the spelling) checker">>),
   ok.

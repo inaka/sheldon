@@ -21,26 +21,24 @@
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
 %% API
--export([
-          default/0
+-export([ default/0
         ]).
 
--export_type([
-               config/0
+-export_type([ config/0
              ]).
 
--type config() ::  #{
-                      lang => sheldon_dictionary:language()
-                    }.
+-type config() ::
+  #{ lang => sheldon_dictionary:language()
+   }.
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 -spec default() -> config().
-default() -> #{
-                lang => default_lang()
-              }.
+default() ->
+  #{ lang => default_lang()
+   }.
 
 %%%===================================================================
 %%% Internal Functions
