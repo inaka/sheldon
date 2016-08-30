@@ -29,14 +29,18 @@
 %%% API
 %%%===================================================================
 
--spec check(string()) -> sheldon_result:result().
+-spec check(iodata()) -> sheldon_result:result().
 check(Text) ->
   check(Text, sheldon_config:default()).
 
--spec check(string(), sheldon_config:config()) -> sheldon_result:result().
-check(Text, Config) ->
+-spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
+check(TextBin, Config) when is_binary(TextBin)->
+  Text = binary:bin_to_list(TextBin),
   %% todo validate Config when adding ignore words/blocks task
-  do_check(Text, Config).
+  do_check(Text, Config);
+check(Text, Config) ->
+  TextBin = binary:list_to_bin(Text),
+  check(TextBin, Config).
 
 %%%===================================================================
 %%% Internal Functions

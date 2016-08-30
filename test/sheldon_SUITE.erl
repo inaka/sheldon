@@ -9,6 +9,7 @@
 
 -export([
           basic_check/1
+        , iodata_check/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -20,6 +21,7 @@
 -spec all() -> [atom()].
 all() ->  [
             basic_check
+          , iodata_check
           ].
 
 -spec init_per_suite(config()) -> config().
@@ -50,6 +52,23 @@ basic_check(_Config) ->
   ok = sheldon:check(""),
   ok = sheldon:check("I am checking numbers too 12, 34, 111, yeah!"),
   ok = sheldon:check("I am checking numbers too [12, 34], {111}, yeah!"),
+  ok = sheldon:check("                                hello"),
   #{result := ["Sheldon"]} =
     sheldon:check("Sheldon doesn't know his name, too bad"),
+  ok.
+
+-spec iodata_check(config()) -> ok.
+iodata_check(_Config) ->
+  #{result := ["iodata"]} =
+    sheldon:check(["I am",  [<<" testing with">>, " "] , <<"iodata">>]),
+  ok = sheldon:check(["Hi, I am (testing the spelling) checker"]),
+  ok = sheldon:check([ $H
+                     , [<<"i">>, " I am"]
+                     ,  <<" (testing the spelling) checker">>]),
+  #{result := ["thedfs"]} =
+    sheldon:check([ "Hi, I am \'tes"
+                  , <<"ting\' the">>
+                  , $d
+                  , $f
+                  , "s.,; spelling checker"]),
   ok.
