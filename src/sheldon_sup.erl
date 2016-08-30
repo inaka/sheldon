@@ -22,10 +22,12 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([ start_link/0
+        ]).
 
 %% Supervisor callbacks
--export([init/1]).
+-export([ init/1
+        ]).
 
 %%%===================================================================
 %%% API functions
@@ -37,8 +39,8 @@
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec(start_link() ->
-  {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
+-spec start_link() ->
+  {ok, Pid :: pid()} | ignore | {error, Reason :: term()}.
 start_link() ->
   supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
@@ -49,10 +51,30 @@ start_link() ->
 -spec init(any()) ->
   {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([]) ->
-  RestartStrategy = one_for_one,
-  MaxRestarts = 1000,
-  MaxSecondsBetweenRestarts = 3600,
+  SupFlags = #{ strategy  => one_for_one
+              , intensity => 1000
+              , period    => 3600
+              },
 
-  SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
+  % Get all the languages, they are in /priv/lang/, each folder is a language
+  {ok, SupportedLang} = file:list_dir(code:priv_dir(sheldon) ++ "/lang/"),
 
-  {ok, {SupFlags, []}}.
+  Children = lists:map(fun get_child/1, SupportedLang),
+
+  {ok, {SupFlags, Children}}.
+
+%%%===================================================================
+%%% Internal Functions
+%%%===================================================================
+
+-spec get_child(string()) -> supervisor:child_spec().
+get_child(LangString) ->
+  Lang = list_to_atom(LangString),
+  Id = sheldon_dictionary:dictionary_name(Lang),
+  #{ id       => Id
+   , start    => {sheldon_dictionary, start_link, [Lang]}
+   , restart  => permanent
+   , shutdown => brutal_kill
+   , type     => worker
+   , modules  => [sheldon_dictionary]
+   }.

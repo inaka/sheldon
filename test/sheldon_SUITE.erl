@@ -1,15 +1,14 @@
 -module(sheldon_SUITE).
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
--export([
-  all/0,
-  init_per_suite/1,
-  end_per_suite/1
-]).
+-export([ all/0
+        , init_per_suite/1
+        , end_per_suite/1
+        ]).
 
--export([
-  code_coverage/1
-]).
+-export([ basic_check/1
+        , iodata_check/1
+        ]).
 
 -type config() :: [{atom(), term()}].
 
@@ -18,7 +17,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec all() -> [atom()].
-all() -> [code_coverage].
+all() ->  [ basic_check
+          , iodata_check
+          ].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -34,6 +35,40 @@ end_per_suite(Config) ->
 %% Test Cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec code_coverage(config()) -> ok.
-code_coverage(_Config) ->
+-spec basic_check(config()) -> ok.
+basic_check(_Config) ->
+  ok = sheldon:check("Hi, I am testing the spelling checker"),
+  #{result := ["wrongspelled"]} =
+    sheldon:check("I am testing a wrongspelled word"),
+  ok = sheldon:check("Hi, I am (testing the spelling) checker"),
+  ok = sheldon:check("Hi, I am \"testing the\" spelling checker"),
+  ok = sheldon:check("Hi, I am \'testing\' the spelling checker"),
+  ok = sheldon:check("Hi, I am \'testing\' the.,; spelling checker"),
+  #{result := ["thedfs"]} =
+    sheldon:check("Hi, I am \'testing\' thedfs.,; spelling checker"),
+  ok = sheldon:check(""),
+  ok = sheldon:check("I am checking numbers too 12, 34, 111, yeah!"),
+  ok = sheldon:check("I am checking numbers too [12, 34], {111}, yeah!"),
+  ok = sheldon:check("                                hello"),
+  #{result := ["Sheldon"]} =
+    sheldon:check("Sheldon doesn't know his name, too bad"),
+  ok.
+
+-spec iodata_check(config()) -> ok.
+iodata_check(_Config) ->
+  #{result := ["iodata"]} =
+    sheldon:check(["I am",  [<<" testing with">>, " "] , <<"iodata">>]),
+  ok = sheldon:check(["Hi, I am (testing the spelling) checker"]),
+  ok = sheldon:check([ $H
+                     , [<<"i">>, " I am"]
+                     , <<" (testing the spelling) checker">>
+                     ]),
+  #{result := ["thedfs"]} =
+    sheldon:check([ "Hi, I am \'tes"
+                  , <<"ting\' the">>
+                  , $d
+                  , $f
+                  , "s.,; spelling checker"
+                  ]),
+  ok = sheldon:check(<<"Hi, I am (testing the spelling) checker">>),
   ok.

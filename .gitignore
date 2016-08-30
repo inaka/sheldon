@@ -12,3 +12,4 @@ rel/example_project
 _build/
 log/
 *_plt
+.DS_Store
