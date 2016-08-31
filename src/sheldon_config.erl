@@ -47,38 +47,36 @@ default() ->
 
 -spec normalize(config()) -> config().
 normalize(Config) when is_map(Config) ->
-  Config1 = normalize_lang(Config),
-  Config2 = normalize_ignore_words(Config1),
-  Config3 = normalize_ignore_patterns(Config2),
-  Config3.
+  #{ lang            => normalize_lang(Config)
+   , ignore_words    => normalize_ignore_words(Config)
+   , ignore_patterns => normalize_ignore_patterns(Config)
+   }.
 
 %%%===================================================================
 %%% Internal Functions
 %%%===================================================================
 
--spec normalize_lang(config()) -> config().
+-spec normalize_lang(config()) -> sheldon_dictionary:language().
 normalize_lang(Config) ->
   Lang = maps:get(lang, Config, default_lang()),
   case lists:member(Lang, lang_supported()) of
-    true  -> Config#{lang => Lang};
+    true  -> Lang;
     false -> throw({invalid_config, not_supported_lang})
   end.
 
--spec normalize_ignore_words(config()) -> config().
+-spec normalize_ignore_words(config()) -> [string()].
 normalize_ignore_words(Config) ->
   IgnoreWords = maps:get(ignore_words, Config, default_ignore_words()),
   case is_list(IgnoreWords) of
-    true  ->
-      IgnoreWordsLower = lists:map(fun string:to_lower/1, IgnoreWords),
-      Config#{ignore_words => IgnoreWordsLower};
+    true  -> lists:map(fun string:to_lower/1, IgnoreWords);
     false -> throw({invalid_config, ignore_words_not_list})
   end.
 
--spec normalize_ignore_patterns(config()) -> config().
+-spec normalize_ignore_patterns(config()) -> [string()].
 normalize_ignore_patterns(Config) ->
   Patterns = maps:get(ignore_patterns, Config, default_ignore_patterns()),
   case is_list(Patterns) of
-    true  -> Config#{ignore_patterns => Patterns};
+    true  -> Patterns;
     false -> throw({invalid_config, ignore_patterns_not_list})
   end.
 

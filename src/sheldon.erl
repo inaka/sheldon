@@ -33,7 +33,7 @@ check(Text) ->
   check(Text, sheldon_config:default()).
 
 -spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
-check(TextBin, Config1) when is_binary(TextBin)->
+check(TextBin, Config1) when is_binary(TextBin) ->
   Config = sheldon_config:normalize(Config1),
   Text = binary:bin_to_list(TextBin),
   do_check(Text, Config);
