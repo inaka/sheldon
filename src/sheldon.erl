@@ -69,8 +69,8 @@ check_words([Word | Rest], Acc, Config) ->
 
 -spec correctly_spelled(string(), sheldon_config:config()) -> boolean().
 correctly_spelled(Word, Config = #{lang := Lang}) ->
-  case sheldon_utils:is_number(Word) or ignore(Word, Config) of
-    false -> sheldon_dictionary:exist(Word, Lang);
+  case sheldon_utils:is_number(Word) orelse ignore(Word, Config) of
+    false -> sheldon_dictionary:member(Word, Lang);
     true  -> true
   end.
 
@@ -79,4 +79,4 @@ ignore(Word, _Config = #{ ignore_words    := IgnoredWords
                         , ignore_patterns := Patterns
                         }) ->
   lists:member(string:to_lower(Word), IgnoredWords)
-    or sheldon_utils:match_in_patterns(Word, Patterns).
+    orelse sheldon_utils:match_in_patterns(Word, Patterns).

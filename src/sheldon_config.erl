@@ -59,7 +59,7 @@ normalize(Config) when is_map(Config) ->
 -spec normalize_lang(config()) -> sheldon_dictionary:language().
 normalize_lang(Config) ->
   Lang = maps:get(lang, Config, default_lang()),
-  case lists:member(Lang, lang_supported()) of
+  case lists:member(Lang, supported_langs()) of
     true  -> Lang;
     false -> throw({invalid_config, not_supported_lang})
   end.
@@ -89,5 +89,5 @@ default_ignore_words() -> [].
 -spec default_ignore_patterns() -> [].
 default_ignore_patterns() -> [].
 
--spec lang_supported() -> [sheldon_dictionary:language()].
-lang_supported() -> [eng].
+-spec supported_langs() -> [sheldon_dictionary:language()].
+supported_langs() -> [eng].
