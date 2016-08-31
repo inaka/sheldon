@@ -22,7 +22,10 @@
 %% API
 -export([ normalize/1
         , is_number/1
+        , match_in_patterns/2
         ]).
+
+-compile({no_auto_import, [is_number/1]}).
 
 %%%===================================================================
 %%% API
@@ -54,6 +57,11 @@ normalize(Word) ->
 is_number(Word) ->
   re:run(Word, "^[0-9]*$") =/= nomatch.
 
+-spec match_in_patterns(string(), [string()]) -> boolean().
+match_in_patterns(Word, Patterns) ->
+  MatchTuples = [{Word, Pattern} || Pattern <- Patterns],
+  lists:foldl(fun match/2, false, MatchTuples).
+
 %%%===================================================================
 %%% Internal Functions
 %%%===================================================================
@@ -63,3 +71,8 @@ escape_chars(Word, []) -> Word;
 escape_chars(Word, [Character | Rest]) ->
   [Word1 | _] = string:tokens(Word, Character),
   escape_chars(Word1, Rest).
+
+-spec match({string(), string()}, boolean()) -> boolean().
+match(_, true) -> true;
+match({Word, Pattern}, false) ->
+  re:run(Word, Pattern) =/= nomatch.

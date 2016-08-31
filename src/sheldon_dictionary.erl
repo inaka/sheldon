@@ -24,7 +24,7 @@
 
 %% API
 -export([ start_link/1
-        , exist_in_dictionary/2
+        , member/2
         , dictionary_name/1
         , get_bazinga/1
         ]).
@@ -53,11 +53,10 @@
 start_link(Lang) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [Lang], []).
 
--spec exist_in_dictionary(language(), string()) -> boolean().
-exist_in_dictionary(Lang, Word) ->
+-spec member(string(), language()) -> boolean().
+member(Word, Lang) ->
   DictName = dictionary_name(Lang),
-  LowerWord = string:to_lower(Word),
-  ets:lookup(DictName, LowerWord) =/= [].
+  ets:lookup(DictName, string:to_lower(Word)) =/= [].
 
 -spec get_bazinga(language()) -> string().
 get_bazinga(Lang) ->

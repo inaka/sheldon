@@ -32,9 +32,9 @@
 check(Text) ->
   check(Text, sheldon_config:default()).
 
-%% @todo validate Config when adding ignore words/blocks task
 -spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
-check(TextBin, Config) when is_binary(TextBin)->
+check(TextBin, Config1) when is_binary(TextBin) ->
+  Config = sheldon_config:normalize(Config1),
   Text = binary:bin_to_list(TextBin),
   do_check(Text, Config);
 check(Text, Config) ->
@@ -48,8 +48,8 @@ check(Text, Config) ->
 -spec do_check(string(), sheldon_config:config()) -> sheldon_result:result().
 do_check(Text, Config) ->
   Words = string:tokens(Text, " "),
-  WrongWords = check_words(Words, Config),
-  sheldon_result:result(WrongWords, Config).
+  MisspelledWords = check_words(Words, Config),
+  sheldon_result:result(MisspelledWords, Config).
 
 -spec check_words([string()], sheldon_config:config()) -> [string()].
 check_words(Words, Config) -> check_words(Words, [], Config).
@@ -59,17 +59,24 @@ check_words(Words, Config) -> check_words(Words, [], Config).
                  , sheldon_config:config()
                  ) -> [string()].
 check_words([], Acc, _Config) -> Acc;
-check_words([Word | Rest], Acc, Config = #{lang := Lang}) ->
+check_words([Word | Rest], Acc, Config) ->
   Normalized = sheldon_utils:normalize(Word),
-  Acc1 = case is_correct(Lang, Normalized) of
+  Acc1 = case correctly_spelled(Normalized, Config) of
            true  -> Acc;
            false -> [Normalized | Acc]
          end,
   check_words(Rest, Acc1, Config).
 
--spec is_correct(sheldon_dictionary:language(), string()) -> boolean().
-is_correct(Language, Word) ->
-  case sheldon_utils:is_number(Word) of
-    false -> sheldon_dictionary:exist_in_dictionary(Language, Word);
+-spec correctly_spelled(string(), sheldon_config:config()) -> boolean().
+correctly_spelled(Word, Config = #{lang := Lang}) ->
+  case sheldon_utils:is_number(Word) orelse ignore(Word, Config) of
+    false -> sheldon_dictionary:member(Word, Lang);
     true  -> true
   end.
+
+-spec ignore(string(), sheldon_config:config()) -> boolean().
+ignore(Word, _Config = #{ ignore_words    := IgnoredWords
+                        , ignore_patterns := Patterns
+                        }) ->
+  lists:member(string:to_lower(Word), IgnoredWords)
+    orelse sheldon_utils:match_in_patterns(Word, Patterns).
