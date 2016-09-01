@@ -62,7 +62,7 @@ member(Word, Lang) ->
 get_bazinga(Lang) ->
   BazingaName = bazinga_name(Lang),
   Keys = ets:tab2list(BazingaName),
-  {Bazinga} = lists:nth(random:uniform(length(Keys)), Keys),
+  {Bazinga} = lists:nth(rand:uniform(length(Keys)), Keys),
   Bazinga.
 
 -spec dictionary_name(language()) -> atom().

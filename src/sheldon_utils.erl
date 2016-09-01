@@ -48,6 +48,7 @@ normalize(Word) ->
                 , "]"
                 , "{"
                 , "}"
+                , "`"
                 ],
   Word1 = escape_chars(Word, CharToScape),
   [WordBin | _] = re:split(Word1, "'s"),
@@ -69,8 +70,10 @@ match_in_patterns(Word, Patterns) ->
 -spec escape_chars(string(), [string()]) -> string().
 escape_chars(Word, []) -> Word;
 escape_chars(Word, [Character | Rest]) ->
-  [Word1 | _] = string:tokens(Word, Character),
-  escape_chars(Word1, Rest).
+  case string:tokens(Word, Character) of
+    []          -> escape_chars(Word, []);
+    [Word1 | _] -> escape_chars(Word1, Rest)
+  end.
 
 -spec match({string(), string()}, boolean()) -> boolean().
 match(_, true) -> true;

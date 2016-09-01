@@ -25,19 +25,27 @@
         ]).
 
 -export_type([ result/0
+             , misspelled_word/0
+             , line_number/0
              ]).
 
--type result() :: ok | #{ result  => [string()]
-                        , bazinga => string()
-                        }.
+-type line_number() :: non_neg_integer().
+-type misspelled_word() ::
+  #{ line_number := non_neg_integer()
+   , word        := string()
+   }.
+-type result() ::
+  ok | #{ misspelled_words := [misspelled_word()]
+        , bazinga          := string()
+        }.
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
--spec result([string()], sheldon_config:config()) -> result().
+-spec result([misspelled_word()], sheldon_config:config()) -> result().
 result([], _Config) -> ok;
-result(WrongWords, _Config = #{lang := Lang}) ->
-  #{ result  => WrongWords
-   , bazinga => sheldon_dictionary:get_bazinga(Lang)
+result(MisspelledWords, _Config = #{lang := Lang}) ->
+  #{ misspelled_words => MisspelledWords
+   , bazinga          => sheldon_dictionary:get_bazinga(Lang)
    }.

@@ -8,9 +8,9 @@
 
 -export([ basic_check/1
         , iodata_check/1
-        , validate_config/1
         , ignore_words/1
         , ignore_patterns/1
+        , multiline/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -22,14 +22,14 @@
 -spec all() -> [atom()].
 all() ->  [ basic_check
           , iodata_check
-          , validate_config
           , ignore_words
           , ignore_patterns
+          , multiline
           ].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-  {ok, _} = application:ensure_all_started(sheldon),
+  ok = sheldon:start(),
   Config.
 
 -spec end_per_suite(config()) -> config().
@@ -44,33 +44,33 @@ end_per_suite(Config) ->
 -spec basic_check(config()) -> ok.
 basic_check(_Config) ->
   ok = sheldon:check("Hi, I am testing the spelling checker"),
-  #{result := ["wrongspelled"]} =
+  #{misspelled_words := [#{word := "wrongspelled"}]} =
     sheldon:check("I am testing a wrongspelled word"),
   ok = sheldon:check("Hi, I am (testing the spelling) checker"),
   ok = sheldon:check("Hi, I am \"testing the\" spelling checker"),
   ok = sheldon:check("Hi, I am \'testing\' the spelling checker"),
   ok = sheldon:check("Hi, I am \'testing\' the.,; spelling checker"),
-  #{result := ["thedfs"]} =
+  #{misspelled_words := [#{word := "thedfs"}]} =
     sheldon:check("Hi, I am \'testing\' thedfs.,; spelling checker"),
   ok = sheldon:check(""),
   ok = sheldon:check("I am checking numbers too 12, 34, 111, yeah!"),
   ok = sheldon:check("I am checking numbers too [12, 34], {111}, yeah!"),
   ok = sheldon:check("                                hello"),
-  #{result := ["Sheldon"]} =
+  #{ misspelled_words := [#{word := "Sheldon"}]} =
     sheldon:check("Sheldon doesn't know his name, too bad"),
   ok = sheldon:check("I am checking numbers too [12, 34], {111}, yeah!", #{}),
   ok.
 
 -spec iodata_check(config()) -> ok.
 iodata_check(_Config) ->
-  #{result := ["iodata"]} =
+  #{misspelled_words := [#{word := "iodata"}]} =
     sheldon:check(["I am",  [<<" testing with">>, " "] , <<"iodata">>]),
   ok = sheldon:check(["Hi, I am (testing the spelling) checker"]),
   ok = sheldon:check([ $H
                      , [<<"i">>, " I am"]
                      , <<" (testing the spelling) checker">>
                      ]),
-  #{result := ["thedfs"]} =
+  #{misspelled_words := [#{word := "thedfs"}]} =
     sheldon:check([ "Hi, I am \'tes"
                   , <<"ting\' the">>
                   , $d
@@ -80,27 +80,6 @@ iodata_check(_Config) ->
   ok = sheldon:check(<<"Hi, I am (testing the spelling) checker">>),
   ok.
 
--spec validate_config(config()) -> ok.
-validate_config(_Config) ->
-  {invalid_config, not_supported_lang} =
-    (catch sheldon:check( "I want to check with a bad config file"
-      , #{lang => es}
-    )),
-  {invalid_config, ignore_words_not_list} =
-    (catch sheldon:check( "I want to check with a bad config file"
-      , #{ignore_words => this_is_bad}
-    )),
-  {invalid_config, ignore_patterns_not_list} =
-    (catch sheldon:check( "I want to check with a bad config file"
-      , #{ignore_patterns => this_is_bad}
-    )),
-  Config = #{ lang            => eng
-            , ignore_words    => ["this", "is", "good"]
-            , ignore_patterns => ["this", "is", "good", "too"]
-            },
-  Config = sheldon_config:normalize(Config),
-  ok.
-
 -spec ignore_words(config()) -> ok.
 ignore_words(_Config) ->
   Config = #{ignore_words => ["Sheldon"] },
@@ -108,7 +87,7 @@ ignore_words(_Config) ->
   Config2 = #{ignore_words => ["ttttthis", "sheldon", "differentone"] },
   ok =
     sheldon:check(<<"testing again. Sheldon should skip ttttthis">>, Config2),
-  #{result := ["vvvvv"]} =
+  #{misspelled_words := [#{word := "vvvvv"}]} =
     sheldon:check(<<"testing again. Sheldon should skip ttttthis"
                    , " but sheldon doesn't skip vvvvv">>, Config2),
   ok.
@@ -119,8 +98,51 @@ ignore_patterns(_Config) ->
   ok = sheldon:check("begindddd should be ignored", Config),
   Config2 = #{ignore_patterns => ["^[4-6]", "^begin"]},
   ok = sheldon:check("begindddd and 4rrrrrr should be ignored", Config2),
-  #{result := ["7rrrr"]} =
+  #{misspelled_words := [#{word := "7rrrr"}]} =
     sheldon:check([ "begindddd and 4rrrrrr should be ignored"
                   , " but 7rrrr shouldn't be ignored, good..."
                   ], Config2),
+  ok.
+
+-spec multiline(config()) -> ok.
+multiline(_Config) ->
+  {ok, Bin} = file:read_file([ code:priv_dir(sheldon)
+                             , "/../test/files/multiline.txt"
+                             ]),
+  #{ bazinga := _Bazinga
+   , misspelled_words :=
+     [ #{ line_number := 3
+        , word        := "superwrong"
+        }
+     , #{ line_number := 2
+        , word        := "fsdfdsd"
+        }
+     , #{ line_number := 1
+        , word        := "multiline"
+        }
+     , #{ line_number := 1
+        , word        := "["
+        }
+     , #{ line_number := 1
+        , word        := "sheldon"
+        }
+     ]
+   } = sheldon:check(Bin),
+  #{ bazinga := _
+   , misspelled_words :=
+     [ #{ line_number := 1
+        , word        := "multiline"
+        }
+     ]
+   } = sheldon:check(Bin, #{ignore_words => [ "Sheldon"
+                                            , "superwrong"
+                                            , "fsdfdsd"
+                                            , "["
+                                            ]}),
+  ok = sheldon:check(Bin, #{ignore_words => [ "Sheldon"
+                                            , "superwrong"
+                                            , "fsdfdsd"
+                                            , "["
+                                            , "multiline"
+                                            ]}),
   ok.

@@ -20,7 +20,8 @@
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
 %% API
--export([ check/1
+-export([ start/0
+        , check/1
         , check/2
         ]).
 
@@ -28,30 +29,53 @@
 %%% API
 %%%===================================================================
 
+%% @doc Used when starting the application on the shell.
+-spec start() -> ok.
+start() ->
+  {ok, _} = application:ensure_all_started(sheldon),
+  ok.
+
 -spec check(iodata()) -> sheldon_result:result().
 check(Text) ->
   check(Text, sheldon_config:default()).
 
 -spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
-check(TextBin, Config1) when is_binary(TextBin) ->
+check(Text, Config1) ->
   Config = sheldon_config:normalize(Config1),
-  Text = binary:bin_to_list(TextBin),
-  do_check(Text, Config);
-check(Text, Config) ->
-  TextBin = binary:list_to_bin(Text),
-  check(TextBin, Config).
+  do_check(Text, Config).
 
 %%%===================================================================
 %%% Internal Functions
 %%%===================================================================
 
--spec do_check(string(), sheldon_config:config()) -> sheldon_result:result().
+-spec do_check(iodata(), sheldon_config:config()) -> sheldon_result:result().
 do_check(Text, Config) ->
-  Words = string:tokens(Text, " "),
-  MisspelledWords = check_words(Words, Config),
+  Lines = re:split(Text, "\n"),
+  MisspelledWords = check_lines(Lines, [], 1, Config),
   sheldon_result:result(MisspelledWords, Config).
 
--spec check_words([string()], sheldon_config:config()) -> [string()].
+-spec check_lines( [iodata()]
+                 , [sheldon_result:misspelled_word()]
+                 , sheldon_result:line_number()
+                 , sheldon_config:config()
+                 ) -> [sheldon_result:misspelled_word()].
+check_lines([], Acc, _LineNumber, _Config) -> Acc;
+check_lines([LineBin | Rest], Acc, LineNumber, Config) ->
+  Line = binary:bin_to_list(LineBin),
+  Words = string:tokens(Line, " "),
+  Acc1 = case check_words(Words, Config) of
+           []     -> Acc;
+           Result ->
+             MisspelledWords = [#{ line_number => LineNumber
+                                 , word        => Word
+                                 } || Word <- Result],
+             lists:flatten([MisspelledWords | Acc])
+         end,
+  check_lines(Rest, Acc1, LineNumber + 1, Config).
+
+-spec check_words( [string()]
+                 , sheldon_config:config()
+                 ) -> [string()].
 check_words(Words, Config) -> check_words(Words, [], Config).
 
 -spec check_words( [string()]
