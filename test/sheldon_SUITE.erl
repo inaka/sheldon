@@ -68,7 +68,7 @@ iodata_check(_Config) ->
   ok = sheldon:check(["Hi, I am (testing the spelling) checker"]),
   ok = sheldon:check([ $H
                      , [<<"i">>, " I am"]
-                     , <<" (testing the spelling) checker">>
+                     , <<" (testing the spelling) checker !">>
                      ]),
   #{misspelled_words := [#{word := "thedfs"}]} =
     sheldon:check([ "Hi, I am \'tes"
@@ -121,9 +121,6 @@ multiline(_Config) ->
         , word        := "multiline"
         }
      , #{ line_number := 1
-        , word        := "["
-        }
-     , #{ line_number := 1
         , word        := "sheldon"
         }
      ]
@@ -137,12 +134,10 @@ multiline(_Config) ->
    } = sheldon:check(Bin, #{ignore_words => [ "Sheldon"
                                             , "superwrong"
                                             , "fsdfdsd"
-                                            , "["
                                             ]}),
   ok = sheldon:check(Bin, #{ignore_words => [ "Sheldon"
                                             , "superwrong"
                                             , "fsdfdsd"
-                                            , "["
                                             , "multiline"
                                             ]}),
   ok.

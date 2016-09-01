@@ -60,9 +60,8 @@ do_check(Text, Config) ->
                  , sheldon_config:config()
                  ) -> [sheldon_result:misspelled_word()].
 check_lines([], Acc, _LineNumber, _Config) -> Acc;
-check_lines([LineBin | Rest], Acc, LineNumber, Config) ->
-  Line = binary:bin_to_list(LineBin),
-  Words = string:tokens(Line, " "),
+check_lines([Line | Rest], Acc, LineNumber, Config) ->
+  Words = re:split(Line, " "),
   Acc1 = case check_words(Words, Config) of
            []     -> Acc;
            Result ->
@@ -73,13 +72,13 @@ check_lines([LineBin | Rest], Acc, LineNumber, Config) ->
          end,
   check_lines(Rest, Acc1, LineNumber + 1, Config).
 
--spec check_words( [string()]
+-spec check_words( [iodata()]
                  , sheldon_config:config()
                  ) -> [string()].
 check_words(Words, Config) -> check_words(Words, [], Config).
 
--spec check_words( [string()]
-                 , [string()]
+-spec check_words( [iodata()]
+                 , [iodata()]
                  , sheldon_config:config()
                  ) -> [string()].
 check_words([], Acc, _Config) -> Acc;

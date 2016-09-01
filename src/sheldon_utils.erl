@@ -31,30 +31,30 @@
 %%% API
 %%%===================================================================
 
--spec normalize(string()) -> string().
+-spec normalize(iodata()) -> string().
 normalize(Word) ->
   CharToScape = [ "\n"
-                , "."
+                , "[.]"
                 , ","
                 , ":"
                 , ";"
-                , "?"
-                , ")"
-                , "("
+                , "[?]"
+                , "[)]"
+                , "[(]"
                 , "\""
                 , "\'"
                 , "!"
-                , "["
+                , "\\["
                 , "]"
                 , "{"
                 , "}"
                 , "`"
+                , "'s"
                 ],
-  Word1 = escape_chars(Word, CharToScape),
-  [WordBin | _] = re:split(Word1, "'s"),
-  binary_to_list(WordBin).
+  Escaped = escape_chars(Word, CharToScape),
+  binary_to_list(Escaped).
 
--spec is_number(string()) -> boolean().
+-spec is_number(iodata()) -> boolean().
 is_number(Word) ->
   re:run(Word, "^[0-9]*$") =/= nomatch.
 
@@ -67,13 +67,11 @@ match_in_patterns(Word, Patterns) ->
 %%% Internal Functions
 %%%===================================================================
 
--spec escape_chars(string(), [string()]) -> string().
+-spec escape_chars(iodata(), [iodata()]) -> iodata().
 escape_chars(Word, []) -> Word;
 escape_chars(Word, [Character | Rest]) ->
-  case string:tokens(Word, Character) of
-    []          -> escape_chars(Word, []);
-    [Word1 | _] -> escape_chars(Word1, Rest)
-  end.
+  [Word1 | _] = re:split(Word, Character),
+  escape_chars(Word1, Rest).
 
 -spec match({string(), string()}, boolean()) -> boolean().
 match(_, true) -> true;
