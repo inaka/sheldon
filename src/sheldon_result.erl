@@ -31,7 +31,7 @@
 
 -type line_number() :: non_neg_integer().
 -type misspelled_word() ::
-  #{ line_number := non_neg_integer()
+  #{ line_number := line_number()
    , word        := string()
    }.
 -type result() ::

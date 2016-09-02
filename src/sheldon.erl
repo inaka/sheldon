@@ -59,39 +59,39 @@ do_check(Text, Config) ->
                  , [sheldon_result:misspelled_word()]
                  , sheldon_config:config()
                  ) -> [sheldon_result:misspelled_word()].
-check_lines([], _LineNumber, Misspelled, _Config) ->
-  Misspelled;
-check_lines([Line | RestFile], LineNumber, Misspelled, Config) ->
+check_lines([], _LineNumber, MisspelledWords, _Config) ->
+  MisspelledWords;
+check_lines([Line | RestFile], LineNumber, MisspelledWords, Config) ->
   Words = re:split(Line, " "),
   case check_words(Words, [], Config) of
     {ok, Result} ->
-      Misspelled2 =
+      MisspelledWords2 =
         [#{ line_number => LineNumber, word => Word } || Word <- Result],
-      Misspelled3 = lists:flatten([Misspelled2 | Misspelled]),
-      check_lines(RestFile, LineNumber + 1, Misspelled3, Config);
-    {block_opened, CloseBlock} ->
+      MisspelledWords3 = lists:flatten([MisspelledWords2 | MisspelledWords]),
+      check_lines(RestFile, LineNumber + 1, MisspelledWords3, Config);
+    {in_block, CloseBlock} ->
       case find_block_closing(RestFile, LineNumber + 1, CloseBlock, Config) of
-        eof                      -> Misspelled;
+        eof                      -> MisspelledWords;
         {RestFile2, LineNumber2} ->
-          check_lines(RestFile2, LineNumber2, Misspelled, Config)
+          check_lines(RestFile2, LineNumber2, MisspelledWords, Config)
       end
   end.
 
 -spec check_words( [iodata()]
                  , [string()]
                  , sheldon_config:config()
-                 ) -> {block_opened, sheldon_config:regex()} | {ok, [string()]}.
+                 ) -> {in_block, sheldon_config:regex()} | {ok, [string()]}.
 check_words([], Misspelled, _Config) -> {ok, Misspelled};
 check_words([Word | RestLine], Misspelled, Config) ->
   #{ ignore_blocks := IgnoreBlocks } = Config,
   case block_opening(Word, IgnoreBlocks) of
-    no_opened ->
+    no_block ->
       Misspelled1 = check_word(Word, Misspelled, Config),
       check_words(RestLine, Misspelled1, Config);
-    {opened, CloseBlock} ->
+    {open, CloseBlock} ->
       case find_close_pattern(RestLine, CloseBlock) of
         {closed, RestLine2} -> check_words(RestLine2, Misspelled, Config);
-        no_closed -> {block_opened, CloseBlock}
+        no_closed -> {in_block, CloseBlock}
       end
   end.
 
@@ -105,12 +105,12 @@ check_word(Word, Misspelled, Config) ->
 
 -spec block_opening( iodata()
                    , [sheldon_config:ignore_block()]
-                   ) -> no_opened | {opened, sheldon_config:regex()}.
-block_opening(_, []) -> no_opened;
+                   ) -> no_block | {open, sheldon_config:regex()}.
+block_opening(_, []) -> no_block;
 block_opening(Word, [#{ open := OpenBlock, close := CloseBlock } | Rest]) ->
   case re:run(Word, OpenBlock) of
     nomatch -> block_opening(Word, Rest);
-    _ -> {opened, CloseBlock}
+    _ -> {open, CloseBlock}
   end.
 
 -spec find_block_closing( [iodata()]
