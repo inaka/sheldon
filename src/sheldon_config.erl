@@ -26,6 +26,8 @@
         ]).
 
 -export_type([ config/0
+             , ignore_block/0
+             , regex/0
              ]).
 
 -type regex()  :: iodata().

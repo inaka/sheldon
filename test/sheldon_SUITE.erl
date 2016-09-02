@@ -11,6 +11,7 @@
         , ignore_words/1
         , ignore_patterns/1
         , multiline/1
+        , ignore_blocks/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -25,6 +26,7 @@ all() ->  [ basic_check
           , ignore_words
           , ignore_patterns
           , multiline
+          , ignore_blocks
           ].
 
 -spec init_per_suite(config()) -> config().
@@ -109,20 +111,12 @@ multiline(_Config) ->
   {ok, Bin} = file:read_file([ code:priv_dir(sheldon)
                              , "/../test/files/multiline.txt"
                              ]),
-  #{ bazinga := _Bazinga
+  #{ bazinga := _
    , misspelled_words :=
-     [ #{ line_number := 3
-        , word        := "superwrong"
-        }
-     , #{ line_number := 2
-        , word        := "fsdfdsd"
-        }
-     , #{ line_number := 1
-        , word        := "multiline"
-        }
-     , #{ line_number := 1
-        , word        := "sheldon"
-        }
+     [ #{ line_number := 3, word := "superwrong" }
+     , #{ line_number := 2, word := "fsdfdsd" }
+     , #{ line_number := 1, word := "multiline" }
+     , #{ line_number := 1, word := "sheldon" }
      ]
    } = sheldon:check(Bin),
   #{ bazinga := _
@@ -140,4 +134,89 @@ multiline(_Config) ->
                                             , "fsdfdsd"
                                             , "multiline"
                                             ]}),
+  ok.
+
+-spec ignore_blocks(config()) -> ok.
+ignore_blocks(_Config) ->
+  {ok, BlockInline} = file:read_file([ code:priv_dir(sheldon)
+                                     , "/../test/files/block_inline.txt"
+                                     ]),
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 7, word := "miiisstake" }
+    , #{ line_number := 4, word := "close_block" }
+    , #{ line_number := 4, word := "adsfsa" }
+    , #{ line_number := 4, word := "dfadf" }
+    , #{ line_number := 4, word := "dsfas" }
+    , #{ line_number := 4, word := "fasd" }
+    , #{ line_number := 4, word := "open_block" }
+    , #{ line_number := 2, word := "mistakke" }
+    ]
+  } = sheldon:check(BlockInline),
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 7, word := "miiisstake" }
+    , #{ line_number := 2, word := "mistakke" }
+    ]
+  } = sheldon:check(BlockInline, #{ignore_blocks =>
+                                   [#{ open => "^open_block$"
+                                     , close => "^close_block$"
+                                     }]
+                                  }),
+  {ok, BlockMultiLine} =
+    file:read_file([ code:priv_dir(sheldon)
+                   , "/../test/files/block_multiline.txt"
+                   ]),
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 10, word := "miiisstake" }
+    , #{ line_number := 7, word := "oneee" }
+    , #{ line_number := 7, word := "close_block" }
+    , #{ line_number := 7, word := "adsfsa" }
+    , #{ line_number := 6, word := "dfadf" }
+    , #{ line_number := 6, word := "dsfas" }
+    , #{ line_number := 5, word := "fasd" }
+    , #{ line_number := 4, word := "open_block" }
+    , #{ line_number := 2, word := "mistakke" }
+    ]
+  } = sheldon:check(BlockMultiLine),
+
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 10, word := "miiisstake" }
+    , #{ line_number := 7, word := "oneee" }
+    , #{ line_number := 2, word := "mistakke"}
+    ]
+  } = sheldon:check(BlockMultiLine, #{ignore_blocks =>
+                                      [#{ open => "^open_block$"
+                                        , close => "^close_block$"
+                                        }]
+                                     }),
+
+  {ok, BlockMultiLine2} =
+    file:read_file([ code:priv_dir(sheldon)
+                   , "/../test/files/block_multiline_no_end.md"
+                   ]),
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 10, word := "miiisstake" }
+    , #{ line_number := 7, word := "oneee" }
+    , #{ line_number := 7, word := "adsfsa" }
+    , #{ line_number := 6, word := "dfadf" }
+    , #{ line_number := 6, word := "dsfas" }
+    , #{ line_number := 5, word := "fasd" }
+    , #{ line_number := 4, word := "open_block" }
+    , #{ line_number := 2, word := "mistakke" }
+    ]
+   } = sheldon:check(BlockMultiLine2),
+
+  #{ bazinga := _
+   , misspelled_words :=
+    [ #{ line_number := 2, word := "mistakke"}
+    ]
+   } = sheldon:check(BlockMultiLine2, #{ignore_blocks =>
+                                        [#{ open => "^open_block$"
+                                          , close => "^close_block$"
+                                          }]
+                                       }),
   ok.
