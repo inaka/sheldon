@@ -26,12 +26,20 @@
         ]).
 
 -export_type([ config/0
+             , ignore_block/0
+             , regex/0
              ]).
 
+-type regex()  :: iodata().
+-type ignore_block() ::
+  #{ open  := regex()
+   , close := regex()
+   }.
 -type config() ::
   #{ lang            => sheldon_dictionary:language()
    , ignore_words    => [string()]
    , ignore_patterns => [string()]
+   , ignore_blocks   => [ignore_block()]
    }.
 
 %%%===================================================================
@@ -43,13 +51,15 @@ default() ->
   #{ lang            => default_lang()
    , ignore_words    => default_ignore_words()
    , ignore_patterns => default_ignore_patterns()
+   , ignore_blocks   => default_ignore_blocks()
    }.
 
 -spec normalize(config()) -> config().
-normalize(Config) when is_map(Config) ->
+normalize(Config) ->
   #{ lang            => normalize_lang(Config)
    , ignore_words    => normalize_ignore_words(Config)
    , ignore_patterns => normalize_ignore_patterns(Config)
+   , ignore_blocks   => normalize_ignore_blocks(Config)
    }.
 
 %%%===================================================================
@@ -58,27 +68,20 @@ normalize(Config) when is_map(Config) ->
 
 -spec normalize_lang(config()) -> sheldon_dictionary:language().
 normalize_lang(Config) ->
-  Lang = maps:get(lang, Config, default_lang()),
-  case lists:member(Lang, supported_langs()) of
-    true  -> Lang;
-    false -> throw({invalid_config, not_supported_lang})
-  end.
+  maps:get(lang, Config, default_lang()).
 
 -spec normalize_ignore_words(config()) -> [string()].
 normalize_ignore_words(Config) ->
-  IgnoreWords = maps:get(ignore_words, Config, default_ignore_words()),
-  case is_list(IgnoreWords) of
-    true  -> lists:map(fun string:to_lower/1, IgnoreWords);
-    false -> throw({invalid_config, ignore_words_not_list})
-  end.
+  IgnoredWords = maps:get(ignore_words, Config, default_ignore_words()),
+  lists:map(fun string:to_lower/1, IgnoredWords).
 
 -spec normalize_ignore_patterns(config()) -> [string()].
 normalize_ignore_patterns(Config) ->
-  Patterns = maps:get(ignore_patterns, Config, default_ignore_patterns()),
-  case is_list(Patterns) of
-    true  -> Patterns;
-    false -> throw({invalid_config, ignore_patterns_not_list})
-  end.
+  maps:get(ignore_patterns, Config, default_ignore_patterns()).
+
+-spec normalize_ignore_blocks(config()) -> [ignore_block()].
+normalize_ignore_blocks(Config) ->
+  maps:get(ignore_blocks, Config, default_ignore_blocks()).
 
 -spec default_lang() -> sheldon_dictionary:language().
 default_lang() -> eng.
@@ -89,5 +92,5 @@ default_ignore_words() -> [].
 -spec default_ignore_patterns() -> [].
 default_ignore_patterns() -> [].
 
--spec supported_langs() -> [sheldon_dictionary:language()].
-supported_langs() -> [eng].
+-spec default_ignore_blocks() -> [].
+default_ignore_blocks() -> [].

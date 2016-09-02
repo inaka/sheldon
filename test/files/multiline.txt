@@ -1,0 +1,4 @@
+I want to check sheldon [ in a multiline Text
+it should show fsdfdsd as a wrong spelled word at line
+2. superwrong should appear at line 3.
+Anyway, lets try to see what happens.
