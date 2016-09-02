@@ -1,4 +1,3 @@
-%%% @hidden
 %%% @doc sheldon's module for config handling.
 %%%
 %%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
@@ -38,7 +37,7 @@
 -type config() ::
   #{ lang            => sheldon_dictionary:language()
    , ignore_words    => [string()]
-   , ignore_patterns => [string()]
+   , ignore_patterns => [regex()]
    , ignore_blocks   => [ignore_block()]
    }.
 
@@ -46,6 +45,7 @@
 %%% API
 %%%===================================================================
 
+%% @doc returns a default config
 -spec default() -> config().
 default() ->
   #{ lang            => default_lang()
@@ -54,6 +54,8 @@ default() ->
    , ignore_blocks   => default_ignore_blocks()
    }.
 
+%% @doc given a config map this method fills the missing keys
+%%      and convert to lowercase the ignore_words
 -spec normalize(config()) -> config().
 normalize(Config) ->
   #{ lang            => normalize_lang(Config)

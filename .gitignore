@@ -13,3 +13,4 @@ _build/
 log/
 *_plt
 .DS_Store
+doc/

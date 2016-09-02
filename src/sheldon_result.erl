@@ -1,4 +1,3 @@
-%%% @hidden
 %%% @doc Result model.
 %%%
 %%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
@@ -43,6 +42,7 @@
 %%% API
 %%%===================================================================
 
+%% @doc Returns a result() type given some misspelled words.
 -spec result([misspelled_word()], sheldon_config:config()) -> result().
 result([], _Config) -> ok;
 result(MisspelledWords, _Config = #{lang := Lang}) ->
