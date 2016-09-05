@@ -24,7 +24,7 @@ And you can check all of our open-source projects at [inaka.github.io](http://in
 ### Erlang Shell
 
 First of all Sheldon is an application and it needs to be started. You can use `sheldon:start/0`.
-Sheldon only have two main methods, `sheldon:check/1` and `sheldon:check/2`. As a user, you just need to use those.
+Sheldon only has two main methods, `sheldon:check/1` and `sheldon:check/2`. As a user, you just need to use those.
 
 ```erlang
 1> sheldon:check("I want to check this correct text").

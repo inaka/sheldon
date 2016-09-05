@@ -61,7 +61,7 @@ normalize(Word) ->
 is_number(Word) ->
   re:run(Word, "^[0-9]*$") =/= nomatch.
 
-%% @doc checks if some string() match in one of the patterns given as
+%% @doc checks if some string() matches in one of the patterns given as
 %%      a parameter
 -spec match_in_patterns(string(), [string()]) -> boolean().
 match_in_patterns(Word, Patterns) ->

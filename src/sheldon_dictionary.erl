@@ -68,7 +68,7 @@ get_bazinga(Lang) ->
   {Bazinga} = lists:nth(rand:uniform(length(Keys)), Keys),
   Bazinga.
 
-%% @doc returns the name of the dictionary givin the language() as a
+%% @doc returns the name of the dictionary given the language() as a
 %%      parameter
 -spec dictionary_name(language()) -> atom().
 dictionary_name(Lang) ->

@@ -35,13 +35,13 @@ start() ->
   {ok, _} = application:ensure_all_started(sheldon),
   ok.
 
-%% @doc Checks the spelling of the passed iodata() as a parameter.
+%% @doc Checks the spelling of the iodata() received as a parameter.
 %% @equiv check(Text, sheldon_config:default())
 -spec check(iodata()) -> sheldon_result:result().
 check(Text) ->
   check(Text, sheldon_config:default()).
 
-%% @doc Checks the spelling of the passed iodata() as a parameter.
+%% @doc Checks the spelling of the iodata() received as a parameter.
 %%      It also accepts Config parameter
 -spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
 check(Text, Config1) ->
