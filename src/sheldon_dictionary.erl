@@ -48,16 +48,19 @@
 %%% API
 %%%===================================================================
 
+%% @doc starts the gen_server
 -spec start_link(language()) ->
   {ok, Pid :: pid()} | ignore | {error, Reason :: term()}.
 start_link(Lang) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [Lang], []).
 
+%% @doc evaluates if a given string() is member of the dictionary
 -spec member(string(), language()) -> boolean().
 member(Word, Lang) ->
   DictName = dictionary_name(Lang),
   ets:lookup(DictName, string:to_lower(Word)) =/= [].
 
+%% @doc returns a bazinga from the ETS
 -spec get_bazinga(language()) -> string().
 get_bazinga(Lang) ->
   BazingaName = bazinga_name(Lang),
@@ -65,6 +68,8 @@ get_bazinga(Lang) ->
   {Bazinga} = lists:nth(rand:uniform(length(Keys)), Keys),
   Bazinga.
 
+%% @doc returns the name of the dictionary given the language() as a
+%%      parameter
 -spec dictionary_name(language()) -> atom().
 dictionary_name(Lang) ->
   Bin = << (atom_to_binary(sheldon, utf8))/binary

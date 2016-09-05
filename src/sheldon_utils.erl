@@ -31,6 +31,8 @@
 %%% API
 %%%===================================================================
 
+%% @doc normalizes the iodata() escaping some characters and converting
+%%      them to string().
 -spec normalize(iodata()) -> string().
 normalize(Word) ->
   CharToScape = [ "\n"
@@ -54,10 +56,13 @@ normalize(Word) ->
   Escaped = escape_chars(Word, CharToScape),
   binary_to_list(Escaped).
 
+%% @doc checks if iodata() is a number
 -spec is_number(iodata()) -> boolean().
 is_number(Word) ->
   re:run(Word, "^[0-9]*$") =/= nomatch.
 
+%% @doc checks if some string() matches in one of the patterns given as
+%%      a parameter
 -spec match_in_patterns(string(), [string()]) -> boolean().
 match_in_patterns(Word, Patterns) ->
   MatchTuples = [{Word, Pattern} || Pattern <- Patterns],

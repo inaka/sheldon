@@ -1,4 +1,3 @@
-%%% @hidden
 %%% @doc Main Sheldon's supervisor.
 %%%
 %%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
@@ -48,6 +47,7 @@ start_link() ->
 %%% Supervisor callbacks
 %%%===================================================================
 
+%% @doc here one child will be created per each dictionary
 -spec init(any()) ->
   {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([]) ->
