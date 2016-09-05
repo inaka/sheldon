@@ -23,7 +23,8 @@ And you can check all of our open-source projects at [inaka.github.io](http://in
 
 ### Erlang Shell
 
-First of all Sheldon is an application and it needs to be started. You can use `sheldon:start/0`.
+First of all Sheldon is an application and it needs to be started. You can use `rebar3 shell` to set the necessary paths, then use `sheldon:start/0` or `application:ensure_all_started(sheldon)` in order to start Sheldon but if you are using Sheldon as a dependency you can let OTP starts it from your_app.app file too.
+
 Sheldon only has two main methods, `sheldon:check/1` and `sheldon:check/2`. As a user, you just need to use those.
 
 ```erlang
@@ -65,4 +66,5 @@ ok
 
 ## Dependencies
 
-- Erlang/OTP 19+
+- Erlang/OTP 19+ in order to use it.
+- Erlang/OTP 19.0.2+ in order to test it.
