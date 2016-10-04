@@ -55,6 +55,9 @@ Then, if we call the previous `sheldon:check/1` but with configuration we can sk
 ok
 ```
 
+## Examples
+Check [this](examples/README.md) out.
+
 ## Results
 
 `sheldon:check/1` and `sheldon:check/2` have the same result type, you can see [sheldon_result.erl](https://github.com/inaka/sheldon/blob/master/src/sheldon_result.erl). Sheldon will return the `ok` atom if the check went well else it'll return
