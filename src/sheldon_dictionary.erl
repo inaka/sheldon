@@ -1,5 +1,7 @@
 %%% @doc This gen_server only creates the ets for the dictionary and
-%%%      ets for bazingas.
+%%%      ets for bazingas. This module also provides the 'candidates' feature.
+%%%      That feature returns the list of candidates when one word is
+%%%      misspelled and it also manages an ets table.
 %%%
 %%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
 %%%
@@ -27,6 +29,7 @@
         , member/2
         , dictionary_name/1
         , get_bazinga/1
+        , candidates/2
         ]).
 
 %% gen_server callbacks
@@ -37,7 +40,6 @@
         , terminate/2
         , code_change/3
         ]).
-
 
 -export_type([ language/0
              ]).
@@ -58,7 +60,8 @@ start_link(Lang) ->
 -spec member(string(), language()) -> boolean().
 member(Word, Lang) ->
   DictName = dictionary_name(Lang),
-  ets:lookup(DictName, string:to_lower(Word)) =/= [].
+  WordLower = string:to_lower(Word),
+  ets:lookup(DictName, list_to_binary(WordLower)) =/= [].
 
 %% @doc returns a bazinga from the ETS
 -spec get_bazinga(language()) -> string().
@@ -130,7 +133,11 @@ learn_language(Lang) ->
                , "/dictionary.txt"
                ],
   DictionaryName = dictionary_name(Lang),
-  ok = fill_ets(DictionaryName, LangSource),
+  Words = fill_ets(DictionaryName, LangSource),
+
+  % save the keys in set format in order to suggest words
+  KeysSet = sets:from_list(Words),
+  ets:insert(DictionaryName, {keys, KeysSet}),
   ok.
 
 -spec set_bazingas(language()) -> ok.
@@ -141,7 +148,7 @@ set_bazingas(Lang) ->
                   , "/bazinga.txt"
                   ],
   BazingaName = bazinga_name(Lang),
-  ok = fill_ets(BazingaName, BazingaSource),
+  _Bazingas = fill_ets(BazingaName, BazingaSource),
   ok.
 
 -spec bazinga_name(language()) -> atom().
@@ -151,11 +158,91 @@ bazinga_name(Lang) ->
          , (atom_to_binary(Lang, utf8))/binary>>,
   binary_to_atom(Bin, utf8).
 
--spec fill_ets(atom(), term()) -> ok.
+-spec fill_ets(atom(), term()) -> [binary()].
 fill_ets(EtsName, Source) ->
   {ok, SourceBin} = file:read_file(Source),
-  SourceString = binary_to_list(SourceBin),
-  Words = string:tokens(SourceString, "\n"),
-  TableName = ets:new(EtsName, [named_table, {read_concurrency, true}]),
-  [ets:insert(TableName, {Word}) || Word <- Words],
+  Words = re:split(SourceBin, "\n"), % one word per line
+  ok = create_ets(EtsName),
+  [ets:insert(EtsName, {Word}) || Word <- Words],
+  Words.
+
+-spec create_ets(atom()) -> ok.
+create_ets(EtsName) ->
+  EtsName = ets:new(EtsName, [named_table, {read_concurrency, true}]),
   ok.
+
+%%%===================================================================
+%%% Corrector Internal Funcions
+%%%===================================================================
+
+-spec candidates(string(), language()) -> [string()] | no_candidates.
+candidates(WordStr, Lang) ->
+  Word = list_to_binary(string:to_lower(WordStr)),
+  Set1 = sets:add_element(Word, empty_set()),
+  Set2 = sets:from_list(edits1(Word)),
+  Set3 = sets:from_list(edits2(Word)),
+  case know_sets(Word, [Set1, Set2, Set3], Lang) of
+    []         -> no_candidates;
+    Candidates -> [binary_to_list(Bin) || Bin <- Candidates]
+  end.
+
+-spec know_sets(binary(), [sets:set()], language()) -> [binary()].
+know_sets(Word, [], _Lang) ->
+  [Word];
+know_sets(Word, [Set | Sets], Lang) ->
+  EmptySet = empty_set(),
+  case know(Set, Lang) of
+    EmptySet -> know_sets(Word, Sets, Lang);
+    Words    -> sets:to_list(Words)
+  end.
+
+-spec know(sets:set(), language()) -> sets:set().
+know(WordsSet, Lang) ->
+  [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
+  sets:intersection(WordsSet, KeysSet).
+
+-spec edits1(binary()) -> [binary()].
+edits1(WordBinary) ->
+  Word = binary_to_list(WordBinary),
+  Splits = [lists:split(I, Word) || I <- lists:seq(0, length(Word))],
+  Acc1 = deletes(Splits, []),
+  Acc2 = transposes(Splits, Acc1),
+  Acc3 = replaces(Splits, Acc2),
+  Acc4 = inserts(Splits, Acc3),
+  lists:flatten(Acc4).
+
+-spec deletes([tuple()], list()) -> list().
+deletes(Splits, Acc) ->
+  Result = [iolist_to_binary([Left, Right]) || {Left, [_ | Right]} <- Splits],
+  [Result | Acc].
+
+-spec transposes([tuple()], list()) -> list().
+transposes(Splits, Acc) ->
+  Result = [iolist_to_binary([Left, B, A, Right])
+    || {Left, [A, B | Right]} <- Splits],
+  [Result | Acc].
+
+-spec replaces([tuple()], list()) -> list().
+replaces(Splits, Acc) ->
+  Result = [iolist_to_binary([Left, Char, Right])
+    || {Left, [_ | Right]} <- Splits, Char <- chars()],
+  [Result | Acc].
+
+-spec inserts([tuple()], list()) -> list().
+inserts(Splits, Acc) ->
+  Result = [iolist_to_binary([Left, Char, Right])
+    || {Left, Right} <- Splits, Char <- chars()],
+  [Result | Acc].
+
+-spec edits2(binary()) -> [binary()].
+edits2(Word) ->
+  Result = [edits1(E1) || E1 <- edits1(Word)],
+  lists:flatten(Result).
+
+-spec chars() -> string().
+chars() ->
+  "abcdefghijklmnopqrstuvwxyz".
+
+-spec empty_set() -> sets:set().
+empty_set() ->
+  sets:new().

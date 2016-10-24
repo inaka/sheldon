@@ -65,12 +65,19 @@ do_check(Text, Config) ->
                  ) -> [sheldon_result:misspelled_word()].
 check_lines([], _LineNumber, MisspelledWords, _Config) ->
   MisspelledWords;
-check_lines([Line | RestFile], LineNumber, MisspelledWords, Config) ->
+check_lines( [Line | RestFile]
+           , LineNumber
+           , MisspelledWords
+           , Config = #{ lang := Lang }
+           ) ->
   Words = re:split(Line, " "),
   case check_words(Words, [], Config) of
     {ok, Result} ->
       MisspelledWords2 =
-        [#{ line_number => LineNumber, word => Word } || Word <- Result],
+        [#{ line_number => LineNumber
+          , word => Word
+          , candidates => sheldon_dictionary:candidates(Word, Lang)
+          } || Word <- Result],
       MisspelledWords3 = lists:flatten([MisspelledWords2 | MisspelledWords]),
       check_lines(RestFile, LineNumber + 1, MisspelledWords3, Config);
     {in_block, CloseBlock} ->
