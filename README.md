@@ -4,6 +4,9 @@
 
 Very Simple Erlang Spell Checker.
 
+__Note:__ `Sheldon` also suggests correct words when some word is misspelled. That functionality was highly inspired by the Elixir project [spell_check](https://github.com/visar/spell_check).
+
+
 ## Contact Us
 For **questions** or **general comments** regarding the use of this library,
 please use our public [hipchat room](http://inaka.net/hipchat).
@@ -30,9 +33,11 @@ Sheldon only has two main methods, `sheldon:check/1` and `sheldon:check/2`. As a
 ```erlang
 1> sheldon:check("I want to check this correct text").
 ok
-2> sheldon:check("I want to check this misspellllled text").
-#{bazinga => "Too bad, I'll have a virgin Cuba Libre.",
-  misspelled_words => [#{line_number => 1,word => "misspellllled"}]}
+2> sheldon:check("I want to check this misspeled text").
+#{bazinga => <<"That's no reason to cry. One cries because one is sad. For example, I cry because others are stupid, and that ma"...>>,
+  misspelled_words => [#{candidates => ["misspeed","misspelled"],
+     line_number => 1,
+     word => "misspeled"}]}
 ```
 
 ## Configuration
@@ -51,7 +56,7 @@ This is the format (see [sheldon_config.erl](https://github.com/inaka/sheldon/bl
 Then, if we call the previous `sheldon:check/1` but with configuration we can skip the error
 
 ```erlang
-3> sheldon:check("I want to check this misspellllled text", #{ignore_words => ["misspellllled"]}).
+3> sheldon:check("I want to check this misspeled text", #{ignore_words => ["misspeled"]}).
 ok
 ```
 

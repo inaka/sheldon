@@ -12,6 +12,7 @@
         , ignore_patterns/1
         , multiline/1
         , ignore_blocks/1
+        , suggest_words/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -27,6 +28,7 @@ all() ->  [ basic_check
           , ignore_patterns
           , multiline
           , ignore_blocks
+          , suggest_words
           ].
 
 -spec init_per_suite(config()) -> config().
@@ -219,4 +221,15 @@ ignore_blocks(_Config) ->
                                           , close => "^close_block$"
                                           }]
                                        }),
+  ok.
+
+-spec suggest_words(config()) -> ok.
+suggest_words(_Config) ->
+  ok = sheldon:check("Hi, I am testing the spelling checker again"),
+  ok = sheldon:check("lets check the suggestor"),
+  #{ bazinga := _
+   , misspelled_words :=
+    [#{candidates := Candidates, line_number := 1, word := "speling"}]
+   } = sheldon:check("speling is wrong, should suggest spelling among others"),
+  true = lists:member("spelling", Candidates),
   ok.

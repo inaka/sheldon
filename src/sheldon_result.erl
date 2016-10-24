@@ -32,6 +32,7 @@
 -type misspelled_word() ::
   #{ line_number := line_number()
    , word        := string()
+   , candidates  := [string()] | no_candidates
    }.
 -type result() ::
   ok | #{ misspelled_words := [misspelled_word()]
