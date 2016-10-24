@@ -232,4 +232,8 @@ suggest_words(_Config) ->
     [#{candidates := Candidates, line_number := 1, word := "speling"}]
    } = sheldon:check("speling is wrong, should suggest spelling among others"),
   true = lists:member("spelling", Candidates),
+  #{ bazinga := _
+   , misspelled_words :=
+    [#{candidates := [], line_number := 1, word := "this_is_wrong"}]
+   } = sheldon:check("The next one is this_is_wrong, no suggestions for that"),
   ok.
