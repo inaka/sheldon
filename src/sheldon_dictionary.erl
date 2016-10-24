@@ -175,16 +175,14 @@ create_ets(EtsName) ->
 %%% Corrector Internal Funcions
 %%%===================================================================
 
--spec candidates(string(), language()) -> [string()] | no_candidates.
+-spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
   Word = list_to_binary(string:to_lower(WordStr)),
   Set1 = sets:add_element(Word, empty_set()),
   Set2 = sets:from_list(edits1(Word)),
   Set3 = sets:from_list(edits2(Word)),
-  case know_sets(Word, [Set1, Set2, Set3], Lang) of
-    []         -> no_candidates;
-    Candidates -> [binary_to_list(Bin) || Bin <- Candidates]
-  end.
+  Candidates = know_sets(Word, [Set1, Set2, Set3], Lang),
+  [binary_to_list(Bin) || Bin <- Candidates].
 
 -spec know_sets(binary(), [sets:set()], language()) -> [binary()].
 know_sets(Word, [], _Lang) ->
