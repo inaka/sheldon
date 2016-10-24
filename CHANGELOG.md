@@ -1,8 +1,21 @@
 # Change Log
 
-## [0.1.0](https://github.com/inaka/sheldon/tree/0.1.0) (2016-09-30)
+## [0.1.1](https://github.com/inaka/sheldon/tree/0.1.1) (2016-10-24)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.0...0.1.1)
+
 **Merged pull requests:**
 
+- \[\#132583107\] functionality for suggest words [\#11](https://github.com/inaka/sheldon/pull/11) ([ferigis](https://github.com/ferigis))
+- \[129082837\] adding examples [\#9](https://github.com/inaka/sheldon/pull/9) ([ferigis](https://github.com/ferigis))
+
+## [0.1.0](https://github.com/inaka/sheldon/tree/0.1.0) (2016-09-30)
+**Closed issues:**
+
+- Version Bump to 0.1.0 [\#7](https://github.com/inaka/sheldon/issues/7)
+
+**Merged pull requests:**
+
+- \[\#7\] version Bump to 0.1.0 [\#8](https://github.com/inaka/sheldon/pull/8) ([ferigis](https://github.com/ferigis))
 - \[\#129082833\] Fulfil the general items on open-source checklist [\#6](https://github.com/inaka/sheldon/pull/6) ([ferigis](https://github.com/ferigis))
 - Ferigis.129449237.ignore blocks [\#5](https://github.com/inaka/sheldon/pull/5) ([ferigis](https://github.com/ferigis))
 - Ferigis.129449221.ignore words [\#4](https://github.com/inaka/sheldon/pull/4) ([ferigis](https://github.com/ferigis))
