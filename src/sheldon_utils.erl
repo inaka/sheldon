@@ -17,7 +17,7 @@
 %%% @copyright Inaka <hello@inaka.net>
 %%%
 -module(sheldon_utils).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 %% API
 -export([ normalize/1
@@ -35,26 +35,8 @@
 %%      them to string().
 -spec normalize(iodata()) -> string().
 normalize(Word) ->
-  CharToScape = [ "\n"
-                , "[.]"
-                , ","
-                , ":"
-                , ";"
-                , "[?]"
-                , "[)]"
-                , "[(]"
-                , "\""
-                , "\'"
-                , "!"
-                , "[[]"
-                , "]"
-                , "{"
-                , "}"
-                , "`"
-                , "'s"
-                ],
-  Escaped = escape_chars(Word, CharToScape),
-  binary_to_list(Escaped).
+  Word1 = apply_rules(Word),
+  binary_to_list(Word1).
 
 %% @doc checks if iodata() is a number
 -spec is_number(iodata()) -> boolean().
@@ -72,13 +54,74 @@ match_in_patterns(Word, Patterns) ->
 %%% Internal Functions
 %%%===================================================================
 
--spec escape_chars(iodata(), [iodata()]) -> iodata().
-escape_chars(Word, []) -> Word;
-escape_chars(Word, [Character | Rest]) ->
-  [Word1 | _] = re:split(Word, Character),
-  escape_chars(Word1, Rest).
-
 -spec match({string(), string()}, boolean()) -> boolean().
 match(_, true) -> true;
 match({Word, Pattern}, false) ->
   re:run(Word, Pattern) =/= nomatch.
+
+-spec apply_rules(iodata()) -> binary().
+apply_rules(Word) ->
+  Word1 = escape_md_symbols(Word),
+  Word2 = escape_prefixes(Word1),
+  Word3 = escape_suffixes(Word2),
+  escape_word(Word3).
+
+-spec escape_word(iodata()) -> binary().
+escape_word(Word) ->
+  EscapedWords = sheldon_basic_check:escaped_words(),
+  escape_word(Word, EscapedWords).
+
+-spec escape_word(iodata(), list()) -> binary().
+escape_word(Word, []) ->
+  Word;
+escape_word(Word, [{pattern, Pattern} | RestEscapedWords]) ->
+  case re:run(Word, Pattern) of
+    nomatch -> escape_word(Word, RestEscapedWords);
+    _ -> <<>>
+  end;
+escape_word(Word, [Word | _]) ->
+  <<>>;
+escape_word(Word, [_ | RestEscapedWords]) ->
+  escape_word(Word, RestEscapedWords).
+
+-spec escape_prefixes(iodata()) -> binary().
+escape_prefixes(Word) ->
+  Prefixes = sheldon_basic_check:prefixes(),
+  escape_prefixes(Word, Prefixes, Prefixes).
+
+-spec escape_prefixes(iodata(), [binary()], [binary()]) -> binary().
+escape_prefixes(Word, [], _) ->
+  Word;
+escape_prefixes(Word, [Prefix | RestPrefixes], Prefixes) ->
+  PrefixSize = byte_size(Prefix),
+  case Word of
+    <<Prefix:PrefixSize/binary, RestWord/binary>> ->
+      % There is a match, we have to check again with all the prefixes
+      escape_prefixes(RestWord, Prefixes, Prefixes);
+    _ ->
+      escape_prefixes(Word, RestPrefixes, Prefixes)
+  end.
+
+-spec escape_suffixes(iodata()) -> binary().
+escape_suffixes(Word) ->
+  Suffixes = sheldon_basic_check:suffixes(),
+  escape_suffixes(Word, Suffixes, Suffixes).
+
+-spec escape_suffixes(iodata(), [binary()], [binary()]) -> binary().
+escape_suffixes(Word, [], _) ->
+  Word;
+escape_suffixes(Word, [Suffix | RestSuffixes], Suffixes) ->
+  SuffixSize = byte_size(Suffix),
+  NewWordSize = byte_size(Word) - SuffixSize,
+  case Word of
+    <<RestWord:NewWordSize/binary, Suffix:SuffixSize/binary>> ->
+      % There is a match, we have to check again with all the suffixes
+      escape_suffixes(RestWord, Suffixes, Suffixes);
+    _ ->
+      escape_suffixes(Word, RestSuffixes, Suffixes)
+  end.
+
+-spec escape_md_symbols(iodata()) -> binary().
+escape_md_symbols(Word) ->
+  [Word1 | _] = re:split(Word, <<"[]][(]">>),
+  Word1.
