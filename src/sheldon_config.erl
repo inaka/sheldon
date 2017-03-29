@@ -17,11 +17,12 @@
 %%% @copyright Inaka <hello@inaka.net>
 %%%
 -module(sheldon_config).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 %% API
 -export([ default/0
         , normalize/1
+        , apply_adapters/2
         ]).
 
 -export_type([ config/0
@@ -34,11 +35,13 @@
   #{ open  := regex()
    , close := regex()
    }.
+-type adapter() :: module().
 -type config() ::
   #{ lang            => sheldon_dictionary:language()
    , ignore_words    => [string()]
    , ignore_patterns => [regex()]
    , ignore_blocks   => [ignore_block()]
+   , adapters        => [adapter()]
    }.
 
 %%%===================================================================
@@ -62,7 +65,16 @@ normalize(Config) ->
    , ignore_words    => normalize_ignore_words(Config)
    , ignore_patterns => normalize_ignore_patterns(Config)
    , ignore_blocks   => normalize_ignore_blocks(Config)
+   , adapters        => normalize_adapters(Config)
    }.
+
+%% @doc Apply adapters to a given iodata() line.
+-spec apply_adapters(iodata(), [adapter()]) -> iodata().
+apply_adapters(Line, []) ->
+  Line;
+apply_adapters(Line, [Adapter | Rest]) ->
+  Result = apply(Adapter, adapt, [Line]),
+  apply_adapters(Result, Rest).
 
 %%%===================================================================
 %%% Internal Functions
@@ -85,6 +97,10 @@ normalize_ignore_patterns(Config) ->
 normalize_ignore_blocks(Config) ->
   maps:get(ignore_blocks, Config, default_ignore_blocks()).
 
+-spec normalize_adapters(config()) -> [adapter()].
+normalize_adapters(Config) ->
+  maps:get(adapters, Config, default_adapters()).
+
 -spec default_lang() -> sheldon_dictionary:language().
 default_lang() -> eng.
 
@@ -96,3 +112,6 @@ default_ignore_patterns() -> [].
 
 -spec default_ignore_blocks() -> [].
 default_ignore_blocks() -> [].
+
+-spec default_adapters() -> [].
+default_adapters() -> [].

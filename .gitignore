@@ -14,3 +14,4 @@ log/
 *_plt
 .DS_Store
 doc/
+_elixir_build/

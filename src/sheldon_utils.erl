@@ -52,6 +52,9 @@ normalize(Word) ->
                 , "}"
                 , "`"
                 , "'s"
+                , "&"
+                , "<"
+                , ">"
                 ],
   Escaped = escape_chars(Word, CharToScape),
   binary_to_list(Escaped).

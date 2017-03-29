@@ -5,7 +5,9 @@
   {registered, []},
   {applications, [
     kernel,
-    stdlib
+    stdlib,
+    elixir,
+    earmark
   ]},
   {modules, []},
   {mod, {sheldon_app, []}},

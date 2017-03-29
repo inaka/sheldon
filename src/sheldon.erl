@@ -17,13 +17,16 @@
 %%% @copyright Inaka <hello@inaka.net>
 %%%
 -module(sheldon).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 %% API
 -export([ start/0
         , check/1
         , check/2
         ]).
+
+%% Types
+-type line()  :: {pos_integer(), iodata()}.
 
 %%%===================================================================
 %%% API
@@ -53,65 +56,70 @@ check(Text, Config1) ->
 %%%===================================================================
 
 -spec do_check(iodata(), sheldon_config:config()) -> sheldon_result:result().
-do_check(Text, Config) ->
+do_check(Text, #{ ignore_blocks := IgnoreBlocks } = Config) ->
   Lines = re:split(Text, "\n"),
-  Misspelled = check_lines(Lines, 1, [], Config),
+
+  % Create lines in format {lineNumber, Line}
+  Lines2 = lists:zip(lists:seq(1, length(Lines)), Lines),
+
+  Lines3 = escape_blocks(Lines2, IgnoreBlocks),
+  Misspelled = check_lines(Lines3, [], Config),
   sheldon_result:result(Misspelled, Config).
 
--spec check_lines( [iodata()]
-                 , sheldon_result:line_number()
-                 , [sheldon_result:misspelled_word()]
-                 , sheldon_config:config()
-                 ) -> [sheldon_result:misspelled_word()].
-check_lines([], _LineNumber, MisspelledWords, _Config) ->
-  MisspelledWords;
-check_lines( [Line | RestFile]
-           , LineNumber
-           , MisspelledWords
-           , Config = #{ lang := Lang }
-           ) ->
+-spec escape_blocks([line()], [sheldon_config:ignore_block()]) -> [line()].
+escape_blocks(Lines, IgnoreBlocks) ->
+  escape_blocks(Lines, IgnoreBlocks, []).
+
+-spec escape_blocks( [line()] | {in_block, sheldon_config:regex(), [line()]}
+                   , [sheldon_config:ignore_block()]
+                   , [line()]
+                   ) -> [line()].
+escape_blocks([], _, Lines) ->
+  Lines;
+escape_blocks([{_, <<>>} | Rest], IgnoreBlocks, Lines) ->
+  escape_blocks(Rest, IgnoreBlocks, Lines);
+escape_blocks([Line | Rest], IgnoreBlocks, Lines) ->
+  case clean_line(Line, IgnoreBlocks) of
+    {in_block, CloseBlock, CleanLine} ->
+      escape_blocks({in_block, CloseBlock, Rest}, IgnoreBlocks, [CleanLine | Lines]);
+    CleanLine ->
+      escape_blocks(Rest, IgnoreBlocks, [CleanLine | Lines])
+  end;
+escape_blocks({in_block, _CloseBlock, []}, _, Lines) ->
+  Lines;
+escape_blocks({in_block, CloseBlock, [{LineNumber, Line} | Rest]}, IgnoreBlocks, Lines) ->
   Words = re:split(Line, " "),
-  case check_words(Words, [], Config) of
-    {ok, Result} ->
-      MisspelledWords2 =
-        [#{ line_number => LineNumber
-          , word => Word
-          , candidates => sheldon_dictionary:candidates(Word, Lang)
-          } || Word <- Result],
-      MisspelledWords3 = lists:flatten([MisspelledWords2 | MisspelledWords]),
-      check_lines(RestFile, LineNumber + 1, MisspelledWords3, Config);
-    {in_block, CloseBlock} ->
-      case find_block_closing(RestFile, LineNumber + 1, CloseBlock, Config) of
-        eof                      -> MisspelledWords;
-        {RestFile2, LineNumber2} ->
-          check_lines(RestFile2, LineNumber2, MisspelledWords, Config)
-      end
+  case find_close_pattern(Words, CloseBlock) of
+    {closed, RestLine2} ->
+      escape_blocks([{LineNumber, build_line(RestLine2)} | Rest], IgnoreBlocks, Lines);
+    no_closed ->
+      escape_blocks({in_block, CloseBlock, Rest}, IgnoreBlocks, Lines)
   end.
 
--spec check_words( [iodata()]
-                 , [string()]
-                 , sheldon_config:config()
-                 ) -> {in_block, sheldon_config:regex()} | {ok, [string()]}.
-check_words([], Misspelled, _Config) -> {ok, Misspelled};
-check_words([Word | RestLine], Misspelled, Config) ->
-  #{ ignore_blocks := IgnoreBlocks } = Config,
+-spec clean_line(line(), [sheldon_config:ignore_blocks()]) ->
+  line() | {in_block, sheldon_config:regex(), line()}.
+clean_line({LineNumber, Line}, IgnoreBlocks) ->
+  Words = re:split(Line, " "),
+  case find_block(Words, IgnoreBlocks, []) of
+    {in_block, CloseBlock, CleanLine} ->
+      {in_block, CloseBlock, {LineNumber, build_line(CleanLine)}};
+    CleanLine ->
+      {LineNumber, build_line(CleanLine)}
+  end.
+
+-spec find_block([binary()], sheldon_config:ignore_blocks(), [binary()]) ->
+  [binary()] | {in_block, sheldon_config:regex(), [binary()]}.
+find_block([], _, CleanLine) ->
+  CleanLine;
+find_block([Word | RestLine], IgnoreBlocks, CleanLine) ->
   case block_opening(Word, IgnoreBlocks) of
     no_block ->
-      Misspelled1 = check_word(Word, Misspelled, Config),
-      check_words(RestLine, Misspelled1, Config);
+      find_block(RestLine, IgnoreBlocks, [Word | CleanLine]);
     {open, CloseBlock} ->
       case find_close_pattern(RestLine, CloseBlock) of
-        {closed, RestLine2} -> check_words(RestLine2, Misspelled, Config);
-        no_closed -> {in_block, CloseBlock}
+        {closed, RestLine2} -> find_block(RestLine2, IgnoreBlocks, CleanLine);
+        no_closed -> {in_block, CloseBlock, CleanLine}
       end
-  end.
-
--spec check_word(iodata(), [string()], sheldon_config:config()) -> [string()].
-check_word(Word, Misspelled, Config) ->
-  Normalized = sheldon_utils:normalize(Word),
-  case correctly_spelled(Normalized, Config) of
-    true  -> Misspelled;
-    false -> [Normalized | Misspelled]
   end.
 
 -spec block_opening( iodata()
@@ -124,26 +132,6 @@ block_opening(Word, [#{ open := OpenBlock, close := CloseBlock } | Rest]) ->
     _ -> {open, CloseBlock}
   end.
 
--spec find_block_closing( [iodata()]
-                        , sheldon_result:line_number()
-                        , sheldon_result:regex()
-                        , sheldon_config:config()
-                        ) -> eof | {[iodata()], sheldon_result:line_number()}.
-find_block_closing([], _LineNumber, _CloseBlock, _Config) ->
-  % file has ended without close pattern
-  eof;
-find_block_closing([Line | RestFile], LineNumber, CloseBlock, Config) ->
-  Words = re:split(Line, " "),
-  case find_close_pattern(Words, CloseBlock) of
-    {closed, RestWords} ->
-      % create a line with the rest of the words
-      RestLine = [[L, " "] || L <- RestWords],
-      RestFile2 = [RestLine | RestFile],
-      {RestFile2, LineNumber};
-    no_closed ->
-      find_block_closing(RestFile, LineNumber + 1, CloseBlock, Config)
-  end.
-
 -spec find_close_pattern( [iodata()]
                         , sheldon_config:regex()
                         ) -> no_closed | {closed, [iodata()]}.
@@ -154,6 +142,49 @@ find_close_pattern([Word | RestWords] = _Line, CloseBlock) ->
   case re:run(Word, CloseBlock) of
     nomatch -> find_close_pattern(RestWords, CloseBlock);
     _       -> {closed, RestWords}
+  end.
+
+-spec build_line([binary()]) -> binary().
+build_line([]) ->
+  <<>>;
+build_line(Words) ->
+  Words1 = lists:reverse(Words),
+  <<_, Line/binary>> = << <<$\s, Word/binary>> || Word <- Words1 >>,
+  Line.
+
+
+-spec check_lines([line()], [sheldon_result:misspelled_word()], sheldon_config:config()) ->
+  [sheldon_result:misspelled_word()].
+check_lines([], MisspelledWords, _Config) ->
+  MisspelledWords;
+check_lines( [{LineNumber, Line} | RestFile]
+           , MisspelledWords
+           , Config = #{ lang := Lang, adapters := Adapters }
+           ) ->
+  Line1 = sheldon_config:apply_adapters(Line, Adapters),
+  Words = re:split(Line1, " "),
+  {ok, Result} = check_words(Words, [], Config),
+  MisspelledWords2 =
+    [#{ line_number => LineNumber
+      , word => Word
+      , candidates => sheldon_dictionary:candidates(Word, Lang)
+      % , candidates => []
+      } || Word <- Result],
+  MisspelledWords3 = lists:append(MisspelledWords2, MisspelledWords),
+  check_lines(RestFile, MisspelledWords3, Config).
+
+-spec check_words([binary()], [string()], sheldon_config:config()) -> {ok, [string()]}.
+check_words([], Misspelled, _Config) -> {ok, Misspelled};
+check_words([Word | RestLine], Misspelled, Config) ->
+  Misspelled1 = check_word(Word, Misspelled, Config),
+  check_words(RestLine, Misspelled1, Config).
+
+-spec check_word(iodata(), [string()], sheldon_config:config()) -> [string()].
+check_word(Word, Misspelled, Config) ->
+  Normalized = sheldon_utils:normalize(Word),
+  case correctly_spelled(Normalized, Config) of
+    true  -> Misspelled;
+    false -> [Normalized | Misspelled]
   end.
 
 -spec correctly_spelled(string(), sheldon_config:config()) -> boolean().

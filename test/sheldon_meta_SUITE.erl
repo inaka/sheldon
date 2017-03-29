@@ -9,9 +9,14 @@
           ]
         }]).
 
--export([init_per_suite/1]).
+-export([ init_per_suite/1
+        , end_per_suite/1
+        ]).
 
 -type config() :: [{atom(), term()}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) -> [{application, sheldon} | Config].
+
+-spec end_per_suite(config()) -> config().
+end_per_suite(Config) -> Config.
