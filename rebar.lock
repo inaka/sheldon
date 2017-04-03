@@ -1,4 +1,10 @@
+{"1.1.0",
 [{<<"bunt">>,{elixir,"bunt","0.2.0"},2},
  {<<"credo">>,{elixir,"credo","0.7.2"},1},
  {<<"dialyxir">>,{elixir,"dialyxir","0.5.0"},1},
- {<<"earmark">>,{elixir,"earmark","1.2.0"},0}].
+ {<<"earmark">>,{elixir,"earmark","1.2.0"},0},
+ {<<"worker_pool">>,{pkg,<<"worker_pool">>,<<"2.2.2">>},0}]}.
+[
+{pkg_hash,[
+ {<<"worker_pool">>, <<"529020B716FC42B68D5DBF44D4B83F83CAC415EBCF034D69DB892F4B7FE0D16B">>}]}
+].

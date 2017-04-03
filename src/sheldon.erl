@@ -64,7 +64,18 @@ do_check(Text, #{ ignore_blocks := IgnoreBlocks } = Config) ->
 
   Lines3 = escape_blocks(Lines2, IgnoreBlocks),
   Misspelled = check_lines(Lines3, [], Config),
-  sheldon_result:result(Misspelled, Config).
+
+  FullMisspelled = add_candidates(Misspelled, Config),
+
+  sheldon_result:result(FullMisspelled, Config).
+
+-spec add_candidates([sheldon_result:misspelled_word()], sheldon_config:config()) ->
+  [sheldon_result:misspelled_word()].
+add_candidates(Misspelled, #{lang := Lang}) ->
+  Refs = [ begin Ref = make_ref(),
+    ok = sheldon_suggestions_server:suggestions(Word, Lang, Ref),
+    {Ref, Result}  end || #{word := Word} = Result <- Misspelled],
+  sheldon_suggestions_server:wait_suggestions(Refs).
 
 -spec escape_blocks([line()], [sheldon_config:ignore_block()]) -> [line()].
 escape_blocks(Lines, IgnoreBlocks) ->
@@ -159,7 +170,7 @@ check_lines([], MisspelledWords, _Config) ->
   MisspelledWords;
 check_lines( [{LineNumber, Line} | RestFile]
            , MisspelledWords
-           , Config = #{ lang := Lang, adapters := Adapters }
+           , Config = #{ adapters := Adapters }
            ) ->
   Line1 = sheldon_config:apply_adapters(Line, Adapters),
   WordsOrdered = re:split(Line1, " "),
@@ -168,7 +179,7 @@ check_lines( [{LineNumber, Line} | RestFile]
   MisspelledWords2 =
     [#{ line_number => LineNumber
       , word => Word
-      , candidates => sheldon_dictionary:candidates(Word, Lang)
+      , candidates => []
       } || Word <- Result],
   MisspelledWords3 = lists:append(MisspelledWords2, MisspelledWords),
   check_lines(RestFile, MisspelledWords3, Config).
