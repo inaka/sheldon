@@ -1,5 +1,5 @@
 -module(sheldon_SUITE).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -export([ all/0
         , init_per_suite/1
@@ -13,6 +13,7 @@
         , multiline/1
         , ignore_blocks/1
         , suggest_words/1
+        , markdown_adapter/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -29,6 +30,7 @@ all() ->  [ basic_check
           , multiline
           , ignore_blocks
           , suggest_words
+          , markdown_adapter
           ].
 
 -spec init_per_suite(config()) -> config().
@@ -115,10 +117,10 @@ multiline(_Config) ->
                              ]),
   #{ bazinga := _
    , misspelled_words :=
-     [ #{ line_number := 3, word := "superwrong" }
-     , #{ line_number := 2, word := "fsdfdsd" }
+     [ #{ line_number := 1, word := "sheldon" }
      , #{ line_number := 1, word := "multiline" }
-     , #{ line_number := 1, word := "sheldon" }
+     , #{ line_number := 2, word := "fsdfdsd" }
+     , #{ line_number := 3, word := "superwrong" }
      ]
    } = sheldon:check(Bin),
   #{ bazinga := _
@@ -145,20 +147,20 @@ ignore_blocks(_Config) ->
                                      ]),
   #{ bazinga := _
    , misspelled_words :=
-    [ #{ line_number := 7, word := "miiisstake" }
-    , #{ line_number := 4, word := "close_block" }
-    , #{ line_number := 4, word := "adsfsa" }
-    , #{ line_number := 4, word := "dfadf" }
-    , #{ line_number := 4, word := "dsfas" }
-    , #{ line_number := 4, word := "fasd" }
+    [ #{ line_number := 2, word := "mistakke" }
     , #{ line_number := 4, word := "open_block" }
-    , #{ line_number := 2, word := "mistakke" }
+    , #{ line_number := 4, word := "fasd" }
+    , #{ line_number := 4, word := "dsfas" }
+    , #{ line_number := 4, word := "dfadf" }
+    , #{ line_number := 4, word := "adsfsa" }
+    , #{ line_number := 4, word := "close_block" }
+    , #{ line_number := 7, word := "miiisstake" }
     ]
   } = sheldon:check(BlockInline),
   #{ bazinga := _
    , misspelled_words :=
-    [ #{ line_number := 7, word := "miiisstake" }
-    , #{ line_number := 2, word := "mistakke" }
+    [ #{ line_number := 2, word := "mistakke" }
+    , #{ line_number := 7, word := "miiisstake" }
     ]
   } = sheldon:check(BlockInline, #{ignore_blocks =>
                                    [#{ open => "^open_block$"
@@ -171,23 +173,23 @@ ignore_blocks(_Config) ->
                    ]),
   #{ bazinga := _
    , misspelled_words :=
-    [ #{ line_number := 10, word := "miiisstake" }
-    , #{ line_number := 7, word := "oneee" }
-    , #{ line_number := 7, word := "close_block" }
-    , #{ line_number := 7, word := "adsfsa" }
-    , #{ line_number := 6, word := "dfadf" }
-    , #{ line_number := 6, word := "dsfas" }
-    , #{ line_number := 5, word := "fasd" }
+    [ #{ line_number := 2, word := "mistakke" }
     , #{ line_number := 4, word := "open_block" }
-    , #{ line_number := 2, word := "mistakke" }
+    , #{ line_number := 5, word := "fasd" }
+    , #{ line_number := 6, word := "dsfas" }
+    , #{ line_number := 6, word := "dfadf" }
+    , #{ line_number := 7, word := "adsfsa" }
+    , #{ line_number := 7, word := "close_block" }
+    , #{ line_number := 7, word := "oneee" }
+    , #{ line_number := 10, word := "miiisstake" }
     ]
   } = sheldon:check(BlockMultiLine),
 
   #{ bazinga := _
    , misspelled_words :=
-    [ #{ line_number := 10, word := "miiisstake" }
+    [ #{ line_number := 2, word := "mistakke" }
     , #{ line_number := 7, word := "oneee" }
-    , #{ line_number := 2, word := "mistakke" }
+    , #{ line_number := 10, word := "miiisstake" }
     ]
   } = sheldon:check(BlockMultiLine, #{ignore_blocks =>
                                       [#{ open => "^open_block$"
@@ -201,14 +203,14 @@ ignore_blocks(_Config) ->
                    ]),
   #{ bazinga := _
    , misspelled_words :=
-    [ #{ line_number := 10, word := "miiisstake" }
-    , #{ line_number := 7, word := "oneee" }
-    , #{ line_number := 7, word := "adsfsa" }
-    , #{ line_number := 6, word := "dfadf" }
-    , #{ line_number := 6, word := "dsfas" }
-    , #{ line_number := 5, word := "fasd" }
+    [ #{ line_number := 2, word := "mistakke" }
     , #{ line_number := 4, word := "open_block" }
-    , #{ line_number := 2, word := "mistakke" }
+    , #{ line_number := 5, word := "fasd" }
+    , #{ line_number := 6, word := "dsfas" }
+    , #{ line_number := 6, word := "dfadf" }
+    , #{ line_number := 7, word := "adsfsa" }
+    , #{ line_number := 7, word := "oneee" }
+    , #{ line_number := 10, word := "miiisstake" }
     ]
    } = sheldon:check(BlockMultiLine2),
 
@@ -237,3 +239,104 @@ suggest_words(_Config) ->
     [#{candidates := [], line_number := 1, word := "this_is_wrong"}]
    } = sheldon:check("The next one is this_is_wrong, no suggestions for that"),
   ok.
+
+-spec markdown_adapter(config()) -> ok.
+markdown_adapter(_Config) ->
+  {ok, MarkownFile} =
+    file:read_file([ code:priv_dir(sheldon)
+                   , "/../test/files/markdown.md"
+                   ]),
+
+  #{ bazinga := _
+   , misspelled_words :=
+     [ #{ line_number := 1, word := "#" }
+     , #{ line_number := 1, word := "API" }
+     , #{ line_number := 3, word := "##" }
+     , #{ line_number := 7, word := "##" }
+     , #{ line_number := 9, word := "**questions**" }
+     , #{ line_number := 9, word := "**general" }
+     , #{ line_number := 9, word := "comments**" }
+     , #{ line_number := 10, word := "hipchat" }
+     , #{ line_number := 12, word := "open-source" }
+     , #{ line_number := 14, word := "##" }
+     , #{ line_number := 16, word := "####" }
+     , #{ line_number := 18, word := "API" }
+     , #{ line_number := 20, word := "open-source" }
+     , #{ line_number := 22, word := "start_block" }
+     , #{ line_number := 24, word := "end_block" }
+     , #{ line_number := 27, word := "*another" }
+     , #{ line_number := 27, word := "block*" }
+     , #{ line_number := 27, word := "start_block1" }
+     , #{ line_number := 28, word := "end_block1" }
+     , #{ line_number := 28, word := "start_block1" }
+     , #{ line_number := 28, word := "end_block1" }
+     , #{ line_number := 28, word := "start_block" }
+     , #{ line_number := 29, word := "end_block" }
+     , #{ line_number := 33, word := "##" }
+     ]
+   } = sheldon:check(MarkownFile, #{ignore_patterns => ["http://"]}),
+
+  #{ bazinga := _
+   , misspelled_words :=
+     [ #{ line_number := 1, word := "API" }
+     , #{ line_number := 4, word := "Inaka" }
+     , #{ line_number := 5, word := "Jayme" }
+     , #{ line_number := 5, word := "Dayron" }
+     , #{ line_number := 5, word := "SumoREST" }
+     , #{ line_number := 10, word := "hipchat" }
+     , #{ line_number := 12, word := "open-source" }
+     , #{ line_number := 12, word := "inaka.github.io" }
+     , #{ line_number := 18, word := "API" }
+     , #{ line_number := 20, word := "open-source" }
+     , #{ line_number := 20, word := "inaka.github.io" }
+     , #{ line_number := 22, word := "start_block" }
+     , #{ line_number := 24, word := "end_block" }
+     , #{ line_number := 27, word := "start_block1" }
+     , #{ line_number := 28, word := "end_block1" }
+     , #{ line_number := 28, word := "start_block1" }
+     , #{ line_number := 28, word := "end_block1" }
+     , #{ line_number := 28, word := "start_block" }
+     , #{ line_number := 29, word := "end_block" }
+     ]
+   } = sheldon:check(MarkownFile, #{ adapters => [markdown_adapter] }),
+
+  #{ bazinga := _
+   , misspelled_words :=
+     [ #{ line_number := 1, word := "API" }
+     , #{ line_number := 4, word := "Inaka" }
+     , #{ line_number := 5, word := "Jayme" }
+     , #{ line_number := 5, word := "Dayron" }
+     , #{ line_number := 5, word := "SumoREST" }
+     , #{ line_number := 10, word := "hipchat" }
+     , #{ line_number := 12, word := "open-source" }
+     , #{ line_number := 12, word := "inaka.github.io" }
+     , #{ line_number := 18, word := "API" }
+     , #{ line_number := 20, word := "open-source" }
+     , #{ line_number := 20, word := "inaka.github.io" }
+     ]
+   } = sheldon:check(MarkownFile, #{ adapters => [markdown_adapter]
+                                   , ignore_blocks =>
+                                       [ #{ open => "^start_block$", close => "^end_block$" }
+                                       , #{ open => "^start_block1$", close => "^end_block1$" }
+                                       ]
+                                   }),
+
+  ok = sheldon:check( MarkownFile
+                    , #{ adapters => [markdown_adapter]
+                       , ignore_blocks =>
+                           [ #{ open => "^start_block$", close => "^end_block$" }
+                           , #{ open => "^start_block1$", close => "^end_block1$" }
+                           ]
+                       , ignore_words =>
+                           [ "api"
+                           , "inaka"
+                           , "inaka.github.io"
+                           , "sumorest"
+                           , "dayron"
+                           , "jayme"
+                           , "hipchat"
+                           , "open-source"
+                           ]
+                       }),
+
+   ok.

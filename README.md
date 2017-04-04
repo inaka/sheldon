@@ -51,6 +51,7 @@ This is the format (see [sheldon_config.erl](https://github.com/inaka/sheldon/bl
 #{ ignore_words    => [string()]
  , ignore_patterns => [regex()]
  , ignore_blocks   => [ignore_block()]
+ , adapters        => [adapter()]
  }.
 ```
 Then, if we call the previous `sheldon:check/1` but with configuration we can skip the error
@@ -59,6 +60,29 @@ Then, if we call the previous `sheldon:check/1` but with configuration we can sk
 3> sheldon:check("I want to check this misspeled text", #{ignore_words => ["misspeled"]}).
 ok
 ```
+
+## Adapters
+
+Sometimes we have to check the spelling of formatted text but `sheldon` handles it as a plain text so we will face problems with that.
+One example is `markdown` files, if we try to check them `sheldon` will complain about things like '##' or '\*something\*'.
+For these cases `sheldon` provides `adapters`. An adapter is an Erlang module with an `adapt/1` function which will receive a line in `binary()` format and returns that line transformed.
+For example, `sheldon` provides [markdown_adapter](https://github.com/inaka/sheldon/blob/master/src/adapter/markdown_adapter.erl) which converts from `markdown` to plain text.
+
+In order to use them we only have to declare them in the config file:
+
+```erlang
+#{adapters => [markdown_adapter]}.
+```
+
+You can create your own adapter which fits your requirements, you only need to implement the `sheldon_adapter` behavior and to provide some code to `adapt/1` function.
+
+```erlang
+-spec adapt(binary()) -> iodata().
+adapt(Line) ->
+  ...
+```
+
+You can add all the adapters you want and they will be executed in order.
 
 ## Examples
 Check [this](examples/README.md) out.
@@ -72,7 +96,10 @@ Check [this](examples/README.md) out.
      }.
 ```
 
+`misspelled_word`'s list will be returned ordered by line number. If more than one misspelled word per line appears they will be ordered by order of appearance.
+
 ## Dependencies
 
 - Erlang/OTP 19+ in order to use it.
 - Erlang/OTP 19.0.2+ in order to test it.
+- Elixir "~> 1.4"

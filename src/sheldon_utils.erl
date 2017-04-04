@@ -1,6 +1,6 @@
 %%% @doc Utils module for sheldon.
 %%%
-%%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
+%%% Copyright Erlang Solutions Ltd. 2017 &lt;hello@inaka.net&gt;
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%% @end
-%%% @copyright Inaka <hello@inaka.net>
+%%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_utils).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 %% API
 -export([ normalize/1
@@ -35,25 +35,7 @@
 %%      them to string().
 -spec normalize(iodata()) -> string().
 normalize(Word) ->
-  CharToScape = [ "\n"
-                , "[.]"
-                , ","
-                , ":"
-                , ";"
-                , "[?]"
-                , "[)]"
-                , "[(]"
-                , "\""
-                , "\'"
-                , "!"
-                , "[[]"
-                , "]"
-                , "{"
-                , "}"
-                , "`"
-                , "'s"
-                ],
-  Escaped = escape_chars(Word, CharToScape),
+  Escaped = escape_chars(Word),
   binary_to_list(Escaped).
 
 %% @doc checks if iodata() is a number
@@ -72,13 +54,62 @@ match_in_patterns(Word, Patterns) ->
 %%% Internal Functions
 %%%===================================================================
 
--spec escape_chars(iodata(), [iodata()]) -> iodata().
-escape_chars(Word, []) -> Word;
-escape_chars(Word, [Character | Rest]) ->
-  [Word1 | _] = re:split(Word, Character),
-  escape_chars(Word1, Rest).
+-spec escape_chars(iodata()) -> binary().
+escape_chars(Word) ->
+  Word1 = escape_patterns(Word, prefixes(), prefixes()),
+  Word2 = escape_patterns(Word1, sufixes(), sufixes()),
+  case escape_patterns(Word2, special_chars(), special_chars()) of
+    EscapedWord when is_list(EscapedWord) ->
+      list_to_binary(EscapedWord);
+    EscapedWord ->
+      EscapedWord
+  end.
 
 -spec match({string(), string()}, boolean()) -> boolean().
 match(_, true) -> true;
 match({Word, Pattern}, false) ->
   re:run(Word, Pattern) =/= nomatch.
+
+-spec escape_patterns(iodata(), [iodata()], [iodata()]) -> iodata().
+escape_patterns(Word, [], _) ->
+  Word;
+escape_patterns(Word, [Pattern | Patterns], OriginalPatterns) ->
+  case re:replace(Word, Pattern, "", [global]) of
+    Word  -> escape_patterns(Word, Patterns, OriginalPatterns);
+    Word1 -> escape_patterns(Word1, OriginalPatterns, OriginalPatterns)
+  end.
+
+-spec prefixes() -> [sheldon_config:regex()].
+prefixes() ->
+  [ "^[(]"
+  , "^\""
+  , "^\'"
+  , "^[[]"
+  , "^{"
+  , "^`"
+  ].
+
+-spec sufixes() -> [sheldon_config:regex()].
+sufixes() ->
+  [ "[.]$"
+  , ",$"
+  , ":$"
+  , ";$"
+  , "[?]$"
+  , "[)]$"
+  , "!$"
+  , "]$"
+  , "}$"
+  , "'s$"
+  , "\"$"
+  , "\'$"
+  , "`$"
+  , "\n"
+  ].
+
+-spec special_chars() -> [sheldon_config:regex()].
+special_chars() ->
+  [ "^&$"
+  , "^>$"
+  , "^<$"
+  ].
