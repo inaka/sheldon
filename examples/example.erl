@@ -1,5 +1,5 @@
 -module(example).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -export([ check_file/1
         , check_file/2

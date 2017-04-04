@@ -3,7 +3,7 @@
 %%%      That feature returns the list of candidates when one word is
 %%%      misspelled and it also manages an ets table.
 %%%
-%%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
+%%% Copyright Erlang Solutions Ltd. 2017 &lt;hello@inaka.net&gt;
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%% @end
-%%% @copyright Inaka <hello@inaka.net>
+%%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_dictionary).
--author("Felipe Ripoll <ferigis@gmail.com>").
+-author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -behaviour(gen_server).
 

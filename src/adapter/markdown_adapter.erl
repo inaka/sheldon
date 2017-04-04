@@ -1,6 +1,6 @@
 %%% @doc Markdown Adapter.
 %%%
-%%% Copyright 2017 Inaka &lt;hello@inaka.net&gt;
+%%% Copyright Erlang Solutions Ltd. 2017 &lt;hello@inaka.net&gt;
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%% @end
-%%% @copyright Inaka <hello@inaka.net>
+%%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(markdown_adapter).
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
+
+-behaviour(sheldon_adapter).
 
 %% API
 -export([adapt/1]).
@@ -28,9 +30,31 @@
 
 -spec adapt(binary()) -> iodata().
 adapt(Line) ->
-  {ok, Line1, _} = 'Elixir.Earmark':as_html(Line),
-  % Earmark replace ' by ’ and ‘ which causes a bitstring, so we replace it by ' again
-  Line2 = binary:replace(Line1, [<<226, 128, 152>>, <<226, 128, 153>>], <<39>>, [global]),
-  % replace “ and ” by "
-  Line3 = binary:replace(Line2, [<<226, 128, 156>>, <<226, 128, 157>>], <<34>>, [global]),
-  html_adapter:adapt(Line3).
+  {ok, Line1, _} = 'Elixir.Earmark':as_html(Line, options()),
+  html_adapter:adapt(Line1).
+
+%%%===================================================================
+%%% Internal Funcions
+%%%===================================================================
+
+-spec options() -> map().
+options() ->
+  #{ renderer          => 'Elixir.Earmark.HtmlRenderer'
+   , gfm               => true
+   , breaks            => false
+   , pedantic          => false
+   , smartypants       => false
+   , sanitize          => false
+   , footnotes         => false
+   , footnote_offset   => 1
+   , code_class_prefix => 'nil'
+   , do_smartypants    => 'nil'
+   , do_sanitize       => 'nil'
+   , mapper            => fun 'Elixir.Earmark':'pmap'/2
+   , render_code       => fun 'Elixir.Earmark.HtmlRenderer':'render_code'/1
+   , file              => <<"<no file>">>
+   , line              => 1
+   , messages          => []
+   , plugins           => #{}
+   , '__struct__' => 'Elixir.Earmark.Options'
+   }.

@@ -1,6 +1,6 @@
 %%% @doc Main module for sheldon. Use this one from your own applications.
 %%%
-%%% Copyright 2016 Inaka &lt;hello@inaka.net&gt;
+%%% Copyright Erlang Solutions Ltd. 2017 &lt;hello@inaka.net&gt;
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%% @end
-%%% @copyright Inaka <hello@inaka.net>
+%%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon).
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
@@ -26,7 +26,7 @@
         ]).
 
 %% Types
--type line()  :: {pos_integer(), iodata()}.
+-type line() :: {pos_integer(), iodata()}.
 
 %%%===================================================================
 %%% API
@@ -162,13 +162,13 @@ check_lines( [{LineNumber, Line} | RestFile]
            , Config = #{ lang := Lang, adapters := Adapters }
            ) ->
   Line1 = sheldon_config:apply_adapters(Line, Adapters),
-  Words = re:split(Line1, " "),
+  WordsOrdered = re:split(Line1, " "),
+  Words = lists:reverse(WordsOrdered),
   {ok, Result} = check_words(Words, [], Config),
   MisspelledWords2 =
     [#{ line_number => LineNumber
       , word => Word
       , candidates => sheldon_dictionary:candidates(Word, Lang)
-      % , candidates => []
       } || Word <- Result],
   MisspelledWords3 = lists:append(MisspelledWords2, MisspelledWords),
   check_lines(RestFile, MisspelledWords3, Config).

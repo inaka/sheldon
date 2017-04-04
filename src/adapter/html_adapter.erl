@@ -1,7 +1,7 @@
 %%% @doc HTML Adapter. *Note* This is not the final version of html_adapter, currently it only
 %%% escapes tags and replace some special html characters.
 %%%
-%%% Copyright 2017 Inaka &lt;hello@inaka.net&gt;
+%%% Copyright Erlang Solutions Ltd. 2017 &lt;hello@inaka.net&gt;
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
 %%% See the License for the specific language governing permissions and
 %%% limitations under the License.
 %%% @end
-%%% @copyright Inaka <hello@inaka.net>
+%%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(html_adapter).
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
+
+-behaviour(sheldon_adapter).
 
 %% API
 -export([adapt/1]).
@@ -45,29 +47,21 @@ replace_chars(Line) ->
 replace_chars(Line, []) ->
   Line;
 replace_chars(Line, [{Pattern, ReplaceBy} | Rest]) ->
-  Result = re:replace(Line, Pattern, ReplaceBy),
-  Result2 = replace(Result, Line, {Pattern, ReplaceBy}),
-  replace_chars(Result2, Rest).
+  Result = re:replace(Line, Pattern, ReplaceBy, [global]),
+  replace_chars(Result, Rest).
 
 -spec escape_tags(iodata()) -> iodata().
 escape_tags(Line) ->
   Pattern = "<[^>]*>",
   ReplaceBy = "",
-  Result = re:replace(Line, Pattern, ReplaceBy),
-  replace(Result, Line, {Pattern, ReplaceBy}).
-
--spec replace(iodata(), iodata(), {string(), string()}) -> iodata().
-replace(Line, Line, _) ->
-  Line;
-replace([Line, []], _, _) ->
-  Line;
-replace(Line, _PreviousLine, {Pattern, ReplaceBy}) ->
-  Result = re:replace(Line, Pattern, ReplaceBy),
-  replace(Result, Line, {Pattern, ReplaceBy}).
+  re:replace(Line, Pattern, ReplaceBy, [global]).
 
 -spec chars_to_replace() -> [{string(), string()}].
 chars_to_replace() ->
   [ {"&quot;", "\""}
-  , {"&amp;", "&"}
+  , {"&amp;", "\\&"}
   , {"&lt;", "<"}
+  , {"&gt;", ">"}
+  , {"&#39;", "'"}
+  , {"&#[0-9]*;", ""}
   ].

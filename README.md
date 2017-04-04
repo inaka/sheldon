@@ -74,7 +74,7 @@ In order to use them we only have to declare them in the config file:
 #{adapters => [markdown_adapter]}.
 ```
 
-You can create your own adapter which fits your requirements, you only need to respect the `adapt/1` function signature.
+You can create your own adapter which fits your requirements, you only need to implement the `sheldon_adapter` behavior and to provide some code to `adapt/1` function.
 
 ```erlang
 -spec adapt(binary()) -> iodata().
@@ -95,6 +95,8 @@ Check [this](examples/README.md) out.
      , bazinga          := string()
      }.
 ```
+
+`misspelled_word`'s list will be returned ordered by line number. If more than one misspelled word per line appears they will be ordered by order of appearance.
 
 ## Dependencies
 
