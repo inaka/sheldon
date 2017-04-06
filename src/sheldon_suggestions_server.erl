@@ -27,13 +27,17 @@ suggestions(MisspelledWords, Lang) ->
   try rpc:pmap({?MODULE, add_suggestions}, [Lang], MisspelledWords) of
     Result -> Result
   catch
-    exit:badrpc -> MisspelledWords
+    exit:badrpc ->
+      error_logger:error_msg( "~p:~p >> Error: badrpc~n\tStack: ~p"
+                            , [?MODULE, ?LINE, erlang:get_stacktrace()]
+                            ),
+      MisspelledWords
   end.
 
 -spec add_suggestions(sheldon_result:misspelled_word(), sheldon_dictionary:language()) ->
   sheldon_result:misspelled_word().
 add_suggestions(#{word := Word} = MisspelledWord, Lang) ->
-  Candidates = wpool:call(suggestions_pool, {suggest, Word, Lang}, available_worker, infinity),
+  Candidates = wpool:call(suggestions_pool, {suggest, Word, Lang}),
   MisspelledWord#{candidates => Candidates}.
 
 %%%=============================================================================
