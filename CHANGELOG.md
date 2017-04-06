@@ -1,10 +1,28 @@
 # Change Log
 
-## [0.1.1](https://github.com/inaka/sheldon/tree/0.1.1) (2016-10-24)
-[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.0...0.1.1)
+## [0.1.2](https://github.com/inaka/sheldon/tree/0.1.2) (2017-04-06)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.1...0.1.2)
+
+**Closed issues:**
+
+- Return empty list when no suggestions available [\#14](https://github.com/inaka/sheldon/issues/14)
 
 **Merged pull requests:**
 
+- Adding worker pool for suggestions [\#19](https://github.com/inaka/sheldon/pull/19) ([ferigis](https://github.com/ferigis))
+- \[\#141943791\] Markdown support [\#18](https://github.com/inaka/sheldon/pull/18) ([ferigis](https://github.com/ferigis))
+- \[\#14\] return empty list when no suggestions exist [\#15](https://github.com/inaka/sheldon/pull/15) ([ferigis](https://github.com/ferigis))
+
+## [0.1.1](https://github.com/inaka/sheldon/tree/0.1.1) (2016-10-24)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.0...0.1.1)
+
+**Closed issues:**
+
+- Version Bump to 0.1.1 [\#12](https://github.com/inaka/sheldon/issues/12)
+
+**Merged pull requests:**
+
+- \[\#12\] Version Bump to 0.1.1 [\#13](https://github.com/inaka/sheldon/pull/13) ([ferigis](https://github.com/ferigis))
 - \[\#132583107\] functionality for suggest words [\#11](https://github.com/inaka/sheldon/pull/11) ([ferigis](https://github.com/ferigis))
 - \[129082837\] adding examples [\#9](https://github.com/inaka/sheldon/pull/9) ([ferigis](https://github.com/ferigis))
 
