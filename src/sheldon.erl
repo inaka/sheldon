@@ -71,11 +71,8 @@ do_check(Text, #{ ignore_blocks := IgnoreBlocks } = Config) ->
 
 -spec add_candidates([sheldon_result:misspelled_word()], sheldon_config:config()) ->
   [sheldon_result:misspelled_word()].
-add_candidates(Misspelled, #{lang := Lang}) ->
-  Refs = [ begin Ref = make_ref(),
-    ok = sheldon_suggestions_server:suggestions(Word, Lang, Ref),
-    {Ref, Result}  end || #{word := Word} = Result <- Misspelled],
-  sheldon_suggestions_server:wait_suggestions(Refs).
+add_candidates(MisspelledWords, #{lang := Lang}) ->
+  sheldon_suggestions_server:suggestions(MisspelledWords, Lang).
 
 -spec escape_blocks([line()], [sheldon_config:ignore_block()]) -> [line()].
 escape_blocks(Lines, IgnoreBlocks) ->

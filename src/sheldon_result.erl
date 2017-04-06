@@ -28,7 +28,7 @@
              , line_number/0
              ]).
 
--type line_number() :: non_neg_integer().
+-type line_number() :: pos_integer().
 -type misspelled_word() ::
   #{ line_number := line_number()
    , word        := string()
