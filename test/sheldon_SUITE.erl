@@ -262,16 +262,16 @@ markdown_adapter(_Config) ->
      , #{ line_number := 16, word := "####" }
      , #{ line_number := 18, word := "API" }
      , #{ line_number := 20, word := "open-source" }
-     , #{ line_number := 22, word := "start_block" }
-     , #{ line_number := 24, word := "end_block" }
+     , #{ line_number := 22, word := "start-block" }
+     , #{ line_number := 24, word := "end-block" }
      , #{ line_number := 27, word := "*another" }
      , #{ line_number := 27, word := "block*" }
-     , #{ line_number := 27, word := "start_block1" }
-     , #{ line_number := 28, word := "end_block1" }
-     , #{ line_number := 28, word := "start_block1" }
-     , #{ line_number := 28, word := "end_block1" }
-     , #{ line_number := 28, word := "start_block" }
-     , #{ line_number := 29, word := "end_block" }
+     , #{ line_number := 27, word := "start-block1" }
+     , #{ line_number := 28, word := "end-block1" }
+     , #{ line_number := 28, word := "start-block1" }
+     , #{ line_number := 28, word := "end-block1" }
+     , #{ line_number := 28, word := "start-block" }
+     , #{ line_number := 29, word := "end-block" }
      , #{ line_number := 33, word := "##" }
      ]
    } = sheldon:check(MarkownFile, #{ignore_patterns => ["http://"]}),
@@ -289,14 +289,14 @@ markdown_adapter(_Config) ->
      , #{ line_number := 18, word := "API" }
      , #{ line_number := 20, word := "open-source" }
      , #{ line_number := 20, word := "inaka.github.io" }
-     , #{ line_number := 22, word := "start_block" }
-     , #{ line_number := 24, word := "end_block" }
-     , #{ line_number := 27, word := "start_block1" }
-     , #{ line_number := 28, word := "end_block1" }
-     , #{ line_number := 28, word := "start_block1" }
-     , #{ line_number := 28, word := "end_block1" }
-     , #{ line_number := 28, word := "start_block" }
-     , #{ line_number := 29, word := "end_block" }
+     , #{ line_number := 22, word := "start-block" }
+     , #{ line_number := 24, word := "end-block" }
+     , #{ line_number := 27, word := "start-block1" }
+     , #{ line_number := 28, word := "end-block1" }
+     , #{ line_number := 28, word := "start-block1" }
+     , #{ line_number := 28, word := "end-block1" }
+     , #{ line_number := 28, word := "start-block" }
+     , #{ line_number := 29, word := "end-block" }
      ]
    } = sheldon:check(MarkownFile, #{ adapters => [markdown_adapter] }),
 
@@ -316,16 +316,16 @@ markdown_adapter(_Config) ->
      ]
    } = sheldon:check(MarkownFile, #{ adapters => [markdown_adapter]
                                    , ignore_blocks =>
-                                       [ #{ open => "^start_block$", close => "^end_block$" }
-                                       , #{ open => "^start_block1$", close => "^end_block1$" }
+                                       [ #{ open => "^start-block$", close => "^end-block$" }
+                                       , #{ open => "^start-block1$", close => "^end-block1$" }
                                        ]
                                    }),
 
   ok = sheldon:check( MarkownFile
                     , #{ adapters => [markdown_adapter]
                        , ignore_blocks =>
-                           [ #{ open => "^start_block$", close => "^end_block$" }
-                           , #{ open => "^start_block1$", close => "^end_block1$" }
+                           [ #{ open => "^start-block$", close => "^end-block$" }
+                           , #{ open => "^start-block1$", close => "^end-block1$" }
                            ]
                        , ignore_words =>
                            [ "api"

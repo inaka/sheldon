@@ -30,31 +30,5 @@
 
 -spec adapt(binary()) -> iodata().
 adapt(Line) ->
-  {ok, Line1, _} = 'Elixir.Earmark':as_html(Line, options()),
+  Line1 = emarkdown:to_html(Line),
   html_adapter:adapt(Line1).
-
-%%%===================================================================
-%%% Internal Funcions
-%%%===================================================================
-
--spec options() -> map().
-options() ->
-  #{ renderer          => 'Elixir.Earmark.HtmlRenderer'
-   , gfm               => true
-   , breaks            => false
-   , pedantic          => false
-   , smartypants       => false
-   , sanitize          => false
-   , footnotes         => false
-   , footnote_offset   => 1
-   , code_class_prefix => 'nil'
-   , do_smartypants    => 'nil'
-   , do_sanitize       => 'nil'
-   , mapper            => fun 'Elixir.Earmark':'pmap'/2
-   , render_code       => fun 'Elixir.Earmark.HtmlRenderer':'render_code'/1
-   , file              => <<"<no file>">>
-   , line              => 1
-   , messages          => []
-   , plugins           => #{}
-   , '__struct__' => 'Elixir.Earmark.Options'
-   }.

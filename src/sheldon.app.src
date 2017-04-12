@@ -6,8 +6,7 @@
   {applications, [
     kernel,
     stdlib,
-    elixir,
-    earmark,
+    emarkdown,
     worker_pool
   ]},
   {modules, []},
