@@ -37,7 +37,8 @@ suggestions(MisspelledWords, Lang) ->
 -spec add_suggestions(sheldon_result:misspelled_word(), sheldon_dictionary:language()) ->
   sheldon_result:misspelled_word().
 add_suggestions(#{word := Word} = MisspelledWord, Lang) ->
-  Candidates = wpool:call(suggestions_pool, {suggest, Word, Lang}),
+  Timeout = application:get_env(sheldon, suggestion_timeout, 15000),
+  Candidates = wpool:call(suggestions_pool, {suggest, Word, Lang}, available_worker, Timeout),
   MisspelledWord#{candidates => Candidates}.
 
 %%%=============================================================================
