@@ -19,14 +19,14 @@ And you can check all of our open-source projects at [inaka.github.io](http://in
 
 And you can check all of our open-source projects at [inaka.github.io](http://inaka.github.io)
 
-this is a test with start_block blocks
+this is a test with start-block blocks
 this line shouldn't appear
-neither end_block continue here
+neither end-block continue here
 new one
 
-this is a huge line with *another block* start_block1 this part of the text should be
-removed end_block1 here we can continue and start_block1 this is out end_block1 continue here and start_block again
-and finish end_block here
+this is a huge line with *another block* start-block1 this part of the text should be
+removed end-block1 here we can continue and start-block1 this is out end-block1 continue here and start-block again
+and finish end-block here
 
 let's test with 'hello' > < & ;
 
