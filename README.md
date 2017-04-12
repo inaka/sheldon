@@ -102,4 +102,3 @@ Check [this](examples/README.md) out.
 
 - Erlang/OTP 19+ in order to use it.
 - Erlang/OTP 19.0.2+ in order to test it.
-- Elixir "~> 1.4"
