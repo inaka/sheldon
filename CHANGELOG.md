@@ -1,14 +1,29 @@
 # Change Log
 
+## [0.1.3](https://github.com/inaka/sheldon/tree/0.1.3) (2017-04-12)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.2...0.1.3)
+
+**Closed issues:**
+
+- Remove Elixir dependencies [\#23](https://github.com/inaka/sheldon/issues/23)
+- increase the worker pool timeout [\#22](https://github.com/inaka/sheldon/issues/22)
+
+**Merged pull requests:**
+
+- \[\#23\] remove elixir dependencies [\#25](https://github.com/inaka/sheldon/pull/25) ([ferigis](https://github.com/ferigis))
+- \[\#22\] adding timeout [\#24](https://github.com/inaka/sheldon/pull/24) ([ferigis](https://github.com/ferigis))
+
 ## [0.1.2](https://github.com/inaka/sheldon/tree/0.1.2) (2017-04-06)
 [Full Changelog](https://github.com/inaka/sheldon/compare/0.1.1...0.1.2)
 
 **Closed issues:**
 
+- Bump Version to 0.1.2 [\#20](https://github.com/inaka/sheldon/issues/20)
 - Return empty list when no suggestions available [\#14](https://github.com/inaka/sheldon/issues/14)
 
 **Merged pull requests:**
 
+- \[\#20\] Version Bump to 0.1.2 [\#21](https://github.com/inaka/sheldon/pull/21) ([ferigis](https://github.com/ferigis))
 - Adding worker pool for suggestions [\#19](https://github.com/inaka/sheldon/pull/19) ([ferigis](https://github.com/ferigis))
 - \[\#141943791\] Markdown support [\#18](https://github.com/inaka/sheldon/pull/18) ([ferigis](https://github.com/ferigis))
 - \[\#14\] return empty list when no suggestions exist [\#15](https://github.com/inaka/sheldon/pull/15) ([ferigis](https://github.com/ferigis))
