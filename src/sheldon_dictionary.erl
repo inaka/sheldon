@@ -163,12 +163,12 @@ fill_ets(EtsName, Source) ->
   {ok, SourceBin} = file:read_file(Source),
   Words = re:split(SourceBin, "\n"), % one word per line
   ok = create_ets(EtsName),
-  [ets:insert(EtsName, {Word}) || Word <- Words],
+  ets:insert(EtsName, [{Word} || Word <- Words]),
   Words.
 
 -spec create_ets(atom()) -> ok.
 create_ets(EtsName) ->
-  EtsName = ets:new(EtsName, [named_table, {read_concurrency, true}]),
+  EtsName = ets:new(EtsName, [named_table, duplicate_bag, {read_concurrency, true}]),
   ok.
 
 %%%===================================================================
