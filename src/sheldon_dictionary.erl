@@ -188,10 +188,10 @@ candidates(WordStr, Lang) ->
 know_sets(Word, [], _Lang) ->
   [Word];
 know_sets(Word, [Set | Sets], Lang) ->
-  EmptySet = empty_set(),
-  case know(Set, Lang) of
-    EmptySet -> know_sets(Word, Sets, Lang);
-    Words    -> mapsets:to_list(Words)
+  Words = know(Set, Lang),
+  case mapsets:size(Words) of
+    0 -> know_sets(Word, Sets, Lang);
+    _ -> mapsets:to_list(Words)
   end.
 
 -spec know(mapsets:set(), language()) -> mapsets:set().

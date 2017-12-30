@@ -25,6 +25,7 @@
         , from_list/1
         , add_element/2
         , intersection/2
+        , size/1
         ]).
 
 -export_type([ set/0
@@ -72,6 +73,11 @@ add_element(E, #mapset{map = Map}) ->
 intersection(#mapset{map = Map1}, #mapset{map = Map2}) ->
   {MapA, MapB} = order_by_size(Map1, Map2),
   #mapset{map = maps:with(maps:keys(MapA), MapB)}.
+
+%% @doc given set, returns it's size
+-spec size(set()) -> integer().
+size(#mapset{map = Map}) ->
+  map_size(Map).
 
 -spec order_by_size(sets_map(E), sets_map(E)) -> {sets_map(E), sets_map(E)}.
 order_by_size(Map1, Map2) when map_size(Map1) > map_size(Map2) -> {Map2, Map1};
