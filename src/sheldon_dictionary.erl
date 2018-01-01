@@ -136,7 +136,7 @@ learn_language(Lang) ->
   Words = fill_ets(DictionaryName, LangSource),
 
   % save the keys in set format in order to suggest words
-  KeysSet = sets:from_list(Words),
+  KeysSet = mapsets:from_list(Words),
   ets:insert(DictionaryName, {keys, KeysSet}),
   ok.
 
@@ -163,12 +163,12 @@ fill_ets(EtsName, Source) ->
   {ok, SourceBin} = file:read_file(Source),
   Words = re:split(SourceBin, "\n"), % one word per line
   ok = create_ets(EtsName),
-  [ets:insert(EtsName, {Word}) || Word <- Words],
+  ets:insert(EtsName, [{Word} || Word <- Words]),
   Words.
 
 -spec create_ets(atom()) -> ok.
 create_ets(EtsName) ->
-  EtsName = ets:new(EtsName, [named_table, {read_concurrency, true}]),
+  EtsName = ets:new(EtsName, [named_table, duplicate_bag, {read_concurrency, true}]),
   ok.
 
 %%%===================================================================
@@ -178,26 +178,26 @@ create_ets(EtsName) ->
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
   Word = list_to_binary(string:to_lower(WordStr)),
-  Set1 = sets:add_element(Word, empty_set()),
-  Set2 = sets:from_list(edits1(Word)),
-  Set3 = sets:from_list(edits2(Word)),
+  Set1 = mapsets:add_element(Word, empty_set()),
+  Set2 = mapsets:from_list(edits1(Word)),
+  Set3 = mapsets:from_list(edits2(Word)),
   Candidates = know_sets(Word, [Set1, Set2, Set3], Lang),
   [binary_to_list(Bin) || Bin <- Candidates].
 
--spec know_sets(binary(), [sets:set()], language()) -> [binary()].
+-spec know_sets(binary(), [mapsets:set()], language()) -> [binary()].
 know_sets(Word, [], _Lang) ->
   [Word];
 know_sets(Word, [Set | Sets], Lang) ->
-  EmptySet = empty_set(),
-  case know(Set, Lang) of
-    EmptySet -> know_sets(Word, Sets, Lang);
-    Words    -> sets:to_list(Words)
+  Words = know(Set, Lang),
+  case mapsets:size(Words) of
+    0 -> know_sets(Word, Sets, Lang);
+    _ -> mapsets:to_list(Words)
   end.
 
--spec know(sets:set(), language()) -> sets:set().
+-spec know(mapsets:set(), language()) -> mapsets:set().
 know(WordsSet, Lang) ->
   [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
-  sets:intersection(WordsSet, KeysSet).
+  mapsets:intersection(WordsSet, KeysSet).
 
 -spec edits1(binary()) -> [binary()].
 edits1(WordBinary) ->
@@ -241,6 +241,6 @@ edits2(Word) ->
 chars() ->
   "abcdefghijklmnopqrstuvwxyz".
 
--spec empty_set() -> sets:set().
+-spec empty_set() -> mapsets:set().
 empty_set() ->
-  sets:new().
+  mapsets:new().
