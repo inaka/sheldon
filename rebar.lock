@@ -1,8 +1,8 @@
 {"1.1.0",
 [{<<"emarkdown">>,{pkg,<<"emarkdown">>,<<"0.1.0">>},0},
- {<<"worker_pool">>,{pkg,<<"worker_pool">>,<<"2.2.3">>},0}]}.
+ {<<"worker_pool">>,{pkg,<<"worker_pool">>,<<"3.1.0">>},0}]}.
 [
 {pkg_hash,[
  {<<"emarkdown">>, <<"F1310FB8EE1A488CB2E16AA4E13CB34A7B68B310222CC47BB817B52242D7337C">>},
- {<<"worker_pool">>, <<"2CD7B2C289B900940297D283922D7E119C540CB8F29B5254639ABB9BFB100CAE">>}]}
+ {<<"worker_pool">>, <<"C908627E04057CF29940AD0E79B89AB161DB520EEBC76942EFD08A187BABF93A">>}]}
 ].
