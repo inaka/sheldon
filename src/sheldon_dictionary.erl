@@ -181,16 +181,16 @@ candidates(WordStr, Lang) ->
   Set1 = mapsets:add_element(Word, empty_set()),
   Set2 = mapsets:from_list(edits1(Word)),
   Set3 = mapsets:from_list(edits2(Word)),
-  Candidates = know_sets(Word, [Set1, Set2, Set3], Lang),
+  Candidates = know_sets([Set1, Set2, Set3], Lang),
   [binary_to_list(Bin) || Bin <- Candidates].
 
--spec know_sets(binary(), [mapsets:set()], language()) -> [binary()].
-know_sets(Word, [], _Lang) ->
-  [Word];
-know_sets(Word, [Set | Sets], Lang) ->
+-spec know_sets([mapsets:set()], language()) -> [binary()].
+know_sets([], _Lang) ->
+  [];
+know_sets([Set | Sets], Lang) ->
   Words = know(Set, Lang),
   case mapsets:size(Words) of
-    0 -> know_sets(Word, Sets, Lang);
+    0 -> know_sets(Sets, Lang);
     _ -> mapsets:to_list(Words)
   end.
 
