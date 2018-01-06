@@ -1,5 +1,24 @@
 # Change Log
 
+## [0.1.4](https://github.com/inaka/sheldon/tree/0.1.4) (2018-01-06)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.3...0.1.4)
+
+**Closed issues:**
+
+- upgrade dependencies [\#35](https://github.com/inaka/sheldon/issues/35)
+- fixing `suggest\_words` test [\#34](https://github.com/inaka/sheldon/issues/34)
+- Remove Elixir references [\#28](https://github.com/inaka/sheldon/issues/28)
+- Version Bump to 0.1.3 [\#26](https://github.com/inaka/sheldon/issues/26)
+- improve performance [\#10](https://github.com/inaka/sheldon/issues/10)
+
+**Merged pull requests:**
+
+- \[\#35\] upgrading dependencies [\#37](https://github.com/inaka/sheldon/pull/37) ([ferigis](https://github.com/ferigis))
+- \[\#34\] fixing test case [\#36](https://github.com/inaka/sheldon/pull/36) ([ferigis](https://github.com/ferigis))
+- Performance improvments - fixes \#10 [\#33](https://github.com/inaka/sheldon/pull/33) ([X4lldux](https://github.com/X4lldux))
+- Remove dead hipchat link [\#32](https://github.com/inaka/sheldon/pull/32) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- \[\#28\] Remove elixir references [\#29](https://github.com/inaka/sheldon/pull/29) ([ferigis](https://github.com/ferigis))
+
 ## [0.1.3](https://github.com/inaka/sheldon/tree/0.1.3) (2017-04-12)
 [Full Changelog](https://github.com/inaka/sheldon/compare/0.1.2...0.1.3)
 
@@ -10,6 +29,7 @@
 
 **Merged pull requests:**
 
+- \[\#26\] Version Bump to 0.1.3 [\#27](https://github.com/inaka/sheldon/pull/27) ([ferigis](https://github.com/ferigis))
 - \[\#23\] remove elixir dependencies [\#25](https://github.com/inaka/sheldon/pull/25) ([ferigis](https://github.com/ferigis))
 - \[\#22\] adding timeout [\#24](https://github.com/inaka/sheldon/pull/24) ([ferigis](https://github.com/ferigis))
 
