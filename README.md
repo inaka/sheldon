@@ -1,6 +1,6 @@
 ![](http://i.giphy.com/M3EZtLUDLsYP6.gif)
 
-# Sheldon
+# Sheldon [![Build Status](https://travis-ci.org/inaka/sheldon.svg?branch=master)](https://travis-ci.org/inaka/sheldon)[![codecov] (https://codecov.io/gh/inaka/sheldon/branch/master/graph/badge.svg)](https://codecov.io/gh/inaka/sheldon)
 
 Very Simple Erlang Spell Checker.
 
