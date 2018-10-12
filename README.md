@@ -16,6 +16,8 @@ And you can check all of our open-source projects at [inaka.github.io](http://in
 
 ## Installation
 
+_NOTE_ `sheldon` only works with Erlang 21 or greater
+
 1. Clone the repo
 2. `rebar3 compile`
 
@@ -97,5 +99,4 @@ Check [this](examples/README.md) out.
 
 ## Dependencies
 
-- Erlang/OTP 19+ in order to use it.
-- Erlang/OTP 19.0.2+ in order to test it.
+- Erlang/OTP 21+

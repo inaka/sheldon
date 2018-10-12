@@ -27,9 +27,9 @@ suggestions(MisspelledWords, Lang) ->
   try rpc:pmap({?MODULE, add_suggestions}, [Lang], MisspelledWords) of
     Result -> Result
   catch
-    exit:badrpc ->
+    exit:badrpc:Stacktrace ->
       error_logger:error_msg( "~p:~p >> Error: badrpc~n\tStack: ~p"
-                            , [?MODULE, ?LINE, erlang:get_stacktrace()]
+                            , [?MODULE, ?LINE, Stacktrace]
                             ),
       MisspelledWords
   end.
