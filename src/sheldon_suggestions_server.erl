@@ -24,7 +24,15 @@
 -spec suggestions([sheldon_result:misspelled_word()], sheldon_dictionary:language()) ->
   [sheldon_result:misspelled_word()].
 suggestions(MisspelledWords, Lang) ->
-  rpc:pmap({?MODULE, add_suggestions}, [Lang], MisspelledWords).
+  try rpc:pmap({?MODULE, add_suggestions}, [Lang], MisspelledWords) of
+    Result -> Result
+  catch
+    exit:badrpc:Stacktrace ->
+      error_logger:error_msg( "~p:~p >> Error: badrpc~n\tStack: ~p"
+                            , [?MODULE, ?LINE, Stacktrace]
+                            ),
+      MisspelledWords
+  end.
 
 -spec add_suggestions(sheldon_result:misspelled_word(), sheldon_dictionary:language()) ->
   sheldon_result:misspelled_word().

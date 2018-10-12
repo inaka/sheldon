@@ -14,6 +14,7 @@
         , ignore_blocks/1
         , suggest_words/1
         , markdown_adapter/1
+        , markdown_adapter_badrpc/1
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -31,6 +32,7 @@ all() ->  [ basic_check
           , ignore_blocks
           , suggest_words
           , markdown_adapter
+          , markdown_adapter_badrpc
           ].
 
 -spec init_per_suite(config()) -> config().
@@ -340,3 +342,17 @@ markdown_adapter(_Config) ->
                        }),
 
    ok.
+
+-spec markdown_adapter_badrpc(config()) -> ok.
+markdown_adapter_badrpc(_Config) ->
+  ok = meck:new(rpc, [unstick]),
+  ok = meck:expect(rpc, pmap, fun mock_rpc/3),
+
+  ok = sheldon:check("hello! Nice to see you all"),
+
+  [_] = meck:unload(),
+  ok.
+
+-spec mock_rpc(_, _, _) -> no_return().
+mock_rpc(_, _, _) ->
+  exit(badrpc).
