@@ -1,5 +1,31 @@
 # Change Log
 
+## [0.1.5](https://github.com/inaka/sheldon/tree/0.1.5) (2018-10-15)
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.4...0.1.5)
+
+**Closed issues:**
+
+- Revert Catch in sheldon\_suggestions\_server:suggestions [\#53](https://github.com/inaka/sheldon/issues/53)
+- Fixing Codecov badge [\#51](https://github.com/inaka/sheldon/issues/51)
+- Removing try/catch in sheldon\_suggestions\_server: suggestions/2 [\#49](https://github.com/inaka/sheldon/issues/49)
+- Increasing the Coverage [\#48](https://github.com/inaka/sheldon/issues/48)
+- Integrating with codecov [\#45](https://github.com/inaka/sheldon/issues/45)
+- Compatibility with Erlang 21 [\#42](https://github.com/inaka/sheldon/issues/42)
+- Update Dependencies [\#40](https://github.com/inaka/sheldon/issues/40)
+- Version Bump to 0.1.4 [\#38](https://github.com/inaka/sheldon/issues/38)
+- Adding Travis [\#30](https://github.com/inaka/sheldon/issues/30)
+
+**Merged pull requests:**
+
+- \[\#48\] increasing coverage [\#55](https://github.com/inaka/sheldon/pull/55) ([ferigis](https://github.com/ferigis))
+- \[\#53\] revert catch [\#54](https://github.com/inaka/sheldon/pull/54) ([ferigis](https://github.com/ferigis))
+- \[\#51\] fixing Codecov Badge [\#52](https://github.com/inaka/sheldon/pull/52) ([ferigis](https://github.com/ferigis))
+- \[\#49\] removing catch [\#50](https://github.com/inaka/sheldon/pull/50) ([ferigis](https://github.com/ferigis))
+- \[WIP\]\[\#40\] updating dependencies [\#47](https://github.com/inaka/sheldon/pull/47) ([ferigis](https://github.com/ferigis))
+- \[\#45\] Integrating with codecov [\#46](https://github.com/inaka/sheldon/pull/46) ([ferigis](https://github.com/ferigis))
+- \[\#30\] adding travis [\#44](https://github.com/inaka/sheldon/pull/44) ([ferigis](https://github.com/ferigis))
+- \[\#42\] removing deprecated functions [\#43](https://github.com/inaka/sheldon/pull/43) ([ferigis](https://github.com/ferigis))
+
 ## [0.1.4](https://github.com/inaka/sheldon/tree/0.1.4) (2018-01-06)
 [Full Changelog](https://github.com/inaka/sheldon/compare/0.1.3...0.1.4)
 
@@ -13,6 +39,7 @@
 
 **Merged pull requests:**
 
+- \[\#38\] Version bump to 0.1.4 [\#39](https://github.com/inaka/sheldon/pull/39) ([ferigis](https://github.com/ferigis))
 - \[\#35\] upgrading dependencies [\#37](https://github.com/inaka/sheldon/pull/37) ([ferigis](https://github.com/ferigis))
 - \[\#34\] fixing test case [\#36](https://github.com/inaka/sheldon/pull/36) ([ferigis](https://github.com/ferigis))
 - Performance improvments - fixes \#10 [\#33](https://github.com/inaka/sheldon/pull/33) ([X4lldux](https://github.com/X4lldux))
