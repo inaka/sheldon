@@ -239,7 +239,7 @@ edits2(Word) ->
 
 -spec chars() -> string().
 chars() ->
-  "abcdefghijklmnopqrstuvwxyz".
+  "abcdefghijklmnopqrstuvwxyz-".
 
 -spec empty_set() -> mapsets:set().
 empty_set() ->
