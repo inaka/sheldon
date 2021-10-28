@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [ $default-branch ]
+  release:
+    types:
+      - created
+  workflow_dispatch:
+
+jobs:
+  ubuntu:
+    name: "Ubuntu"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp: [22.3, 23.3, 24.1]
+      fail-fast: false
+    container:
+      image: erlang:${{ matrix.otp }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Dialyzer
+      run: rebar3 dialyzer
+    - name: Tests
+      run: rebar3 ct
