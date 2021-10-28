@@ -1,8 +1,9 @@
 sudo: false
 language: erlang
 otp_release:
-  - 21.0
-  - 21.1
+  - 22.3
+  - 23.3
+  - 24.1
 before_install:
   - ./ci before_install "${PWD:?}"/rebar3
   - pip install --user codecov
