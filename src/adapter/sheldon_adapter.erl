@@ -17,6 +17,7 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_adapter).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -callback adapt(Line :: binary()) -> iodata().

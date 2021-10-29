@@ -18,14 +18,13 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_app).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -behaviour(application).
 
 %% Application callbacks
--export([ start/2
-        , stop/1
-        ]).
+-export([start/2, stop/1]).
 
 %%%===================================================================
 %%% Application callbacks
@@ -33,8 +32,8 @@
 
 -spec start(term(), term()) -> {error, term()} | {ok, pid()}.
 start(_StartType, _StartArgs) ->
-  sheldon_sup:start_link().
+    sheldon_sup:start_link().
 
 -spec stop(term()) -> ok.
 stop(_State) ->
-  ok.
+    ok.

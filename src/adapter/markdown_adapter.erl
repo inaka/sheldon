@@ -17,6 +17,7 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(markdown_adapter).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -behaviour(sheldon_adapter).
@@ -30,5 +31,5 @@
 
 -spec adapt(binary()) -> iodata().
 adapt(Line) ->
-  Line1 = emarkdown:to_html(Line),
-  html_adapter:adapt(Line1).
+    Line1 = emarkdown:to_html(Line),
+    html_adapter:adapt(Line1).

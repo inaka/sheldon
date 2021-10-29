@@ -17,16 +17,15 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_sup).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
+
 -behaviour(supervisor).
 
 %% API
--export([ start_link/0
-        ]).
-
+-export([start_link/0]).
 %% Supervisor callbacks
--export([ init/1
-        ]).
+-export([init/1]).
 
 %%%===================================================================
 %%% API functions
@@ -38,32 +37,30 @@
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec start_link() ->
-  {ok, Pid :: pid()} | ignore | {error, Reason :: term()}.
+-spec start_link() -> {ok, Pid :: pid()} | ignore | {error, Reason :: term()}.
 start_link() ->
-  supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %%%===================================================================
 %%% Supervisor callbacks
 %%%===================================================================
 
 %% @doc here one child will be created per each dictionary
--spec init(any()) ->
-  {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+-spec init(any()) -> {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init([]) ->
-  SupFlags = #{ strategy  => one_for_one
-              , intensity => 1000
-              , period    => 3600
-              },
+    SupFlags =
+        #{strategy => one_for_one,
+          intensity => 1000,
+          period => 3600},
 
-  % Get all the languages, they are in /priv/lang/, each folder is a language
-  {ok, SupportedLang} = file:list_dir(code:priv_dir(sheldon) ++ "/lang/"),
+    % Get all the languages, they are in /priv/lang/, each folder is a language
+    {ok, SupportedLang} = file:list_dir(code:priv_dir(sheldon) ++ "/lang/"),
 
-  Children = lists:map(fun get_child/1, SupportedLang),
+    Children = lists:map(fun get_child/1, SupportedLang),
 
-  SuggestionsSup = get_suggestions_sup(),
+    SuggestionsSup = get_suggestions_sup(),
 
-  {ok, {SupFlags, [SuggestionsSup | Children]}}.
+    {ok, {SupFlags, [SuggestionsSup | Children]}}.
 
 %%%===================================================================
 %%% Internal Functions
@@ -71,25 +68,23 @@ init([]) ->
 
 -spec get_child(string()) -> supervisor:child_spec().
 get_child(LangString) ->
-  Lang = list_to_atom(LangString),
-  Id = sheldon_dictionary:dictionary_name(Lang),
-  #{ id       => Id
-   , start    => {sheldon_dictionary, start_link, [Lang]}
-   , restart  => permanent
-   , shutdown => brutal_kill
-   , type     => worker
-   , modules  => [sheldon_dictionary]
-   }.
+    Lang = list_to_atom(LangString),
+    Id = sheldon_dictionary:dictionary_name(Lang),
+    #{id => Id,
+      start => {sheldon_dictionary, start_link, [Lang]},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => worker,
+      modules => [sheldon_dictionary]}.
 
 -spec get_suggestions_sup() -> supervisor:child_spec().
 get_suggestions_sup() ->
-  WPoolOptions = [ {workers,  application:get_env(sheldon, suggestion_workers, 100)}
-                 , {worker, {sheldon_suggestions_server, no_args}}
-                 ],
-  #{ id       => suggestions_sup
-   , start    => {wpool, start_pool, [suggestions_pool, WPoolOptions]}
-   , restart  => permanent
-   , shutdown => brutal_kill
-   , type     => supervisor
-   , modules  => [wpool]
-   }.
+    WPoolOptions =
+        [{workers, application:get_env(sheldon, suggestion_workers, 100)},
+         {worker, {sheldon_suggestions_server, no_args}}],
+    #{id => suggestions_sup,
+      start => {wpool, start_pool, [suggestions_pool, WPoolOptions]},
+      restart => permanent,
+      shutdown => brutal_kill,
+      type => supervisor,
+      modules => [wpool]}.
