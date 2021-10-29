@@ -20,4 +20,6 @@
 
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
+-hank([unused_callbacks]).
+
 -callback adapt(Line :: binary()) -> iodata().

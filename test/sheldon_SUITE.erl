@@ -2,6 +2,10 @@
 
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
+-behaviour(ct_suite).
+
+-hank([{unnecessary_function_arguments, [{mock_rpc, 3}]}]).
+
 -export([all/0, init_per_suite/1, end_per_suite/1]).
 -export([basic_check/1, iodata_check/1, ignore_words/1, ignore_patterns/1, multiline/1,
          ignore_blocks/1, suggest_words/1, markdown_adapter/1, markdown_adapter_badrpc/1]).

@@ -2,6 +2,8 @@
 
 -author("Felipe Ripoll <ferigis@gmail.com>").
 
+-behaviour(ct_suite).
+
 -export([all/0, init_per_suite/1, end_per_suite/1]).
 -export([sheldon_suggestions_server/1, sheldon_dictionary/1, mapsets/1]).
 
