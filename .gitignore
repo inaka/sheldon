@@ -15,3 +15,4 @@ log/
 .DS_Store
 doc/
 codecov.json
+rebar3
