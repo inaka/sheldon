@@ -1,6 +1,11 @@
 ![](http://i.giphy.com/M3EZtLUDLsYP6.gif)
 
-# Sheldon [![Build Status](https://travis-ci.org/inaka/sheldon.svg?branch=master)](https://travis-ci.org/inaka/sheldon) [![codecov](https://codecov.io/gh/inaka/sheldon/branch/master/graph/badge.svg)](https://codecov.io/gh/inaka/sheldon)
+# Sheldon
+[![Hex.pm Version][hexpm version]][hexpm]
+[![Hex.pm Downloads][hexpm downloads]][hexpm]
+[![Coverage Status][coveralls badge]][coveralls]
+[![Build Status][gh badge]][gh]
+[![Erlang Versions][erlang version badge]][gh]
 
 Very Simple Erlang Spell Checker.
 
@@ -99,4 +104,14 @@ Check [this](examples/README.md) out.
 
 ## Dependencies
 
-- Erlang/OTP 21+
+- Erlang/OTP 22+
+
+<!-- Badges -->
+[hexpm]: https://hex.pm/packages/sheldon
+[hexpm version]: https://img.shields.io/hexpm/v/sheldon.svg?style=flat-square
+[hexpm downloads]: https://img.shields.io/hexpm/dt/sheldon.svg?style=flat-square
+[gh]: https://github.com/inaka/sheldon/actions/workflows/ci.yml
+[gh badge]: https://img.shields.io/github/workflow/status/inaka/sheldon/CI?style=flat-square
+[coveralls]: https://coveralls.io/github/inaka/sheldon
+[coveralls badge]: https://img.shields.io/coveralls/inaka/sheldon/master.svg?style=flat-square
+[erlang version badge]: https://img.shields.io/badge/erlang-22.3%20to%2024.1-blue.svg?style=flat-square
