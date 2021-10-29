@@ -104,7 +104,7 @@ Check [this](examples/README.md) out.
 
 ## Dependencies
 
-- Erlang/OTP 22+
+- Erlang/OTP 23+
 
 <!-- Badges -->
 [hexpm]: https://hex.pm/packages/sheldon
@@ -114,4 +114,4 @@ Check [this](examples/README.md) out.
 [gh badge]: https://img.shields.io/github/workflow/status/inaka/sheldon/CI?style=flat-square
 [coveralls]: https://coveralls.io/github/inaka/sheldon
 [coveralls badge]: https://img.shields.io/coveralls/inaka/sheldon/master.svg?style=flat-square
-[erlang version badge]: https://img.shields.io/badge/erlang-22.3%20to%2024.1-blue.svg?style=flat-square
+[erlang version badge]: https://img.shields.io/badge/erlang-23.0%20to%2024.1-blue.svg?style=flat-square
