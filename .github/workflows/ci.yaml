@@ -21,6 +21,8 @@ jobs:
       image: erlang:${{ matrix.otp }}
     steps:
     - uses: actions/checkout@v2
+    - name: Format check
+      run: rebar3 format --verify
     - name: Tests
       run: rebar3 test
     - name: prepare coverage report
