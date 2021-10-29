@@ -25,3 +25,21 @@ jobs:
       run: rebar3 dialyzer
     - name: Tests
       run: rebar3 ct
+    - name: prepare coverage report
+      run: rebar3 codecov analyze --lcov --json false
+    - name: report coverage
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        flag-name: small_tests on OTP ${{matrix.otp}}
+        path-to-lcov: ./lcov.info
+
+  coveralls:
+    needs: [ubuntu]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finish coveralls parallel build
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
