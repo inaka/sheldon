@@ -147,7 +147,6 @@ ignore_blocks(_Config) ->
            #{line_number := 7, word := "oneee"},
            #{line_number := 10, word := "miiisstake"}]} =
         sheldon:check(BlockMultiLine),
-
     #{bazinga := _,
       misspelled_words :=
           [#{line_number := 2, word := "mistakke"},
@@ -198,7 +197,6 @@ suggest_words(_Config) ->
 markdown_adapter(_Config) ->
     {ok, MarkownFile} =
         file:read_file([code:priv_dir(sheldon), "/../test/files/markdown.md"]),
-
     #{bazinga := _,
       misspelled_words :=
           [#{line_number := 1, word := "#"},
@@ -226,7 +224,6 @@ markdown_adapter(_Config) ->
            #{line_number := 29, word := "end-block"},
            #{line_number := 33, word := "##"}]} =
         sheldon:check(MarkownFile, #{ignore_patterns => ["http://"]}),
-
     #{bazinga := _,
       misspelled_words :=
           [#{line_number := 1, word := "API"},
@@ -249,7 +246,6 @@ markdown_adapter(_Config) ->
            #{line_number := 28, word := "start-block"},
            #{line_number := 29, word := "end-block"}]} =
         sheldon:check(MarkownFile, #{adapters => [markdown_adapter]}),
-
     #{bazinga := _,
       misspelled_words :=
           [#{line_number := 1, word := "API"},
