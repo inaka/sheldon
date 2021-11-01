@@ -16,3 +16,4 @@ log/
 doc/
 codecov.json
 rebar3
+rebar3.crashdump

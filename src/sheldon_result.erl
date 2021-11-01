@@ -17,27 +17,20 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(sheldon_result).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 %% API
--export([ result/2
-        ]).
+-export([result/2]).
 
--export_type([ result/0
-             , misspelled_word/0
-             , line_number/0
-             ]).
+-export_type([result/0, misspelled_word/0, line_number/0]).
 
 -type line_number() :: pos_integer().
 -type misspelled_word() ::
-  #{ line_number := line_number()
-   , word        := string()
-   , candidates  := [string()]
-   }.
--type result() ::
-  ok | #{ misspelled_words := [misspelled_word()]
-        , bazinga          := string()
-        }.
+    #{line_number := line_number(),
+      word := string(),
+      candidates := [string()]}.
+-type result() :: ok | #{misspelled_words := [misspelled_word()], bazinga := string()}.
 
 %%%===================================================================
 %%% API
@@ -45,8 +38,7 @@
 
 %% @doc Returns a result() type given some misspelled words.
 -spec result([misspelled_word()], sheldon_config:config()) -> result().
-result([], _Config) -> ok;
+result([], _Config) ->
+    ok;
 result(MisspelledWords, _Config = #{lang := Lang}) ->
-  #{ misspelled_words => MisspelledWords
-   , bazinga          => sheldon_dictionary:get_bazinga(Lang)
-   }.
+    #{misspelled_words => MisspelledWords, bazinga => sheldon_dictionary:get_bazinga(Lang)}.

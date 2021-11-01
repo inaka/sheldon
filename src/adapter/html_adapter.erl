@@ -18,6 +18,7 @@
 %%% @copyright Erlang Solutions Ltd. <hello@inaka.net>
 %%%
 -module(html_adapter).
+
 -author("Felipe Ripoll <felipe@inakanetworks.com>").
 
 -behaviour(sheldon_adapter).
@@ -31,8 +32,8 @@
 
 -spec adapt(binary()) -> iodata().
 adapt(Line) ->
-  Line1 = escape_tags(Line),
-  replace_chars(Line1).
+    Line1 = escape_tags(Line),
+    replace_chars(Line1).
 
 %%%===================================================================
 %%% Internal Functions
@@ -40,28 +41,27 @@ adapt(Line) ->
 
 -spec replace_chars(binary()) -> iodata().
 replace_chars(Line) ->
-  Chars = chars_to_replace(),
-  replace_chars(Line, Chars).
+    Chars = chars_to_replace(),
+    replace_chars(Line, Chars).
 
 -spec replace_chars(iodata(), [{string(), string()}]) -> iodata().
 replace_chars(Line, []) ->
-  Line;
+    Line;
 replace_chars(Line, [{Pattern, ReplaceBy} | Rest]) ->
-  Result = re:replace(Line, Pattern, ReplaceBy, [global]),
-  replace_chars(Result, Rest).
+    Result = re:replace(Line, Pattern, ReplaceBy, [global]),
+    replace_chars(Result, Rest).
 
 -spec escape_tags(iodata()) -> iodata().
 escape_tags(Line) ->
-  Pattern = "<[^>]*>",
-  ReplaceBy = "",
-  re:replace(Line, Pattern, ReplaceBy, [global]).
+    Pattern = "<[^>]*>",
+    ReplaceBy = "",
+    re:replace(Line, Pattern, ReplaceBy, [global]).
 
 -spec chars_to_replace() -> [{string(), string()}].
 chars_to_replace() ->
-  [ {"&quot;", "\""}
-  , {"&amp;", "\\&"}
-  , {"&lt;", "<"}
-  , {"&gt;", ">"}
-  , {"&#39;", "'"}
-  , {"&#[0-9]*;", ""}
-  ].
+    [{"&quot;", "\""},
+     {"&amp;", "\\&"},
+     {"&lt;", "<"},
+     {"&gt;", ">"},
+     {"&#39;", "'"},
+     {"&#[0-9]*;", ""}].
