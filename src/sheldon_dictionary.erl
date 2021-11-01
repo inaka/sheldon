@@ -115,7 +115,7 @@ learn_language(Lang) ->
     Words = fill_ets(DictionaryName, LangSource),
 
     % save the keys in set format in order to suggest words
-    KeysSet = mapsets:from_list(Words),
+    KeysSet = sets:from_list(Words),
     ets:insert(DictionaryName, {keys, KeysSet}),
     ok.
 
@@ -153,28 +153,28 @@ create_ets(EtsName) ->
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
     Word = list_to_binary(string:to_lower(WordStr)),
-    Set1 = mapsets:add_element(Word, empty_set()),
-    Set2 = mapsets:from_list(edits1(Word)),
-    Set3 = mapsets:from_list(edits2(Word)),
+    Set1 = sets:add_element(Word, sets:new()),
+    Set2 = sets:from_list(edits1(Word)),
+    Set3 = sets:from_list(edits2(Word)),
     Candidates = know_sets([Set1, Set2, Set3], Lang),
     [binary_to_list(Bin) || Bin <- Candidates].
 
--spec know_sets([mapsets:set()], language()) -> [binary()].
+-spec know_sets([sets:set()], language()) -> [binary()].
 know_sets([], _Lang) ->
     [];
 know_sets([Set | Sets], Lang) ->
     Words = know(Set, Lang),
-    case mapsets:size(Words) of
+    case sets:size(Words) of
         0 ->
             know_sets(Sets, Lang);
         _ ->
-            mapsets:to_list(Words)
+            sets:to_list(Words)
     end.
 
--spec know(mapsets:set(), language()) -> mapsets:set().
+-spec know(sets:set(), language()) -> sets:set().
 know(WordsSet, Lang) ->
     [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
-    mapsets:intersection(WordsSet, KeysSet).
+    sets:intersection(WordsSet, KeysSet).
 
 -spec edits1(binary()) -> [binary()].
 edits1(WordBinary) ->
@@ -216,7 +216,3 @@ edits2(Word) ->
 -spec chars() -> string().
 chars() ->
     "abcdefghijklmnopqrstuvwxyz-".
-
--spec empty_set() -> mapsets:set().
-empty_set() ->
-    mapsets:new().
