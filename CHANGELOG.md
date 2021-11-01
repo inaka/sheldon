@@ -1,16 +1,28 @@
 # Changelog
 
+## [0.2.0](https://github.com/inaka/sheldon/tree/0.2.0) (2021-11-01)
+
+[Full Changelog](https://github.com/inaka/sheldon/compare/0.1.6...0.2.0)
+
+**Merged pull requests:**
+
+- Modernize [\#64](https://github.com/inaka/sheldon/pull/64) ([vkatsuba](https://github.com/vkatsuba))
+- Add coveralls [\#63](https://github.com/inaka/sheldon/pull/63) ([vkatsuba](https://github.com/vkatsuba))
+- Update for OTP 24 [\#62](https://github.com/inaka/sheldon/pull/62) ([vkatsuba](https://github.com/vkatsuba))
+
 ## [0.1.6](https://github.com/inaka/sheldon/tree/0.1.6) (2020-08-07)
 
 [Full Changelog](https://github.com/inaka/sheldon/compare/0.1.5...0.1.6)
 
 **Closed issues:**
 
+- Version Bump to 0.1.6 [\#60](https://github.com/inaka/sheldon/issues/60)
 - A word with hyphen is not being suggested by spell checker. [\#58](https://github.com/inaka/sheldon/issues/58)
 - Version Bump to 0.1.5 [\#41](https://github.com/inaka/sheldon/issues/41)
 
 **Merged pull requests:**
 
+- \[\#60\] Version Bump to 0.1.6 [\#61](https://github.com/inaka/sheldon/pull/61) ([ferigis](https://github.com/ferigis))
 - \[\#58\] using hyphen in order to build suggestions [\#59](https://github.com/inaka/sheldon/pull/59) ([ferigis](https://github.com/ferigis))
 
 ## [0.1.5](https://github.com/inaka/sheldon/tree/0.1.5) (2018-10-15)

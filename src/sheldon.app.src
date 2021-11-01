@@ -1,6 +1,6 @@
 {application, sheldon, [
   {description, "Very Simple Erlang Spell Checker"},
-  {vsn, "0.1.6"},
+  {vsn, "0.2.0"},
   {id, "sheldon"},
   {registered, []},
   {applications, [
