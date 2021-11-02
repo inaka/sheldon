@@ -49,7 +49,7 @@ start_link(Lang) ->
 member(Word, Lang) ->
     DictName = dictionary_name(Lang),
     WordLower = string:to_lower(Word),
-    ets:lookup(DictName, list_to_binary(WordLower)) =/= [].
+    ets:lookup(DictName, WordLower) =/= [].
 
 %% @doc returns a bazinga from the ETS
 -spec get_bazinga(language()) -> string().
@@ -115,8 +115,7 @@ learn_language(Lang) ->
     Words = fill_ets(DictionaryName, LangSource),
 
     % save the keys in set format in order to suggest words
-    KeysSet = mapsets:from_list(Words),
-    ets:insert(DictionaryName, {keys, KeysSet}),
+    [ets:insert(DictionaryName, {binary_to_list(W)}) || W <- Words],
     ok.
 
 -spec set_bazingas(language()) -> ok.
@@ -138,12 +137,12 @@ fill_ets(EtsName, Source) ->
     {ok, SourceBin} = file:read_file(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
     ok = create_ets(EtsName),
-    ets:insert(EtsName, [{Word} || Word <- Words]),
+    ets:insert(EtsName, [{binary_to_list(Word)} || Word <- Words]),
     Words.
 
 -spec create_ets(atom()) -> ok.
 create_ets(EtsName) ->
-    EtsName = ets:new(EtsName, [named_table, duplicate_bag, {read_concurrency, true}]),
+    EtsName = ets:new(EtsName, [named_table, set, {read_concurrency, true}]),
     ok.
 
 %%%===================================================================
@@ -152,71 +151,19 @@ create_ets(EtsName) ->
 
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
-    Word = list_to_binary(string:to_lower(WordStr)),
-    Set1 = mapsets:add_element(Word, empty_set()),
-    Set2 = mapsets:from_list(edits1(Word)),
-    Set3 = mapsets:from_list(edits2(Word)),
-    Candidates = know_sets([Set1, Set2, Set3], Lang),
-    [binary_to_list(Bin) || Bin <- Candidates].
+    Word = string:to_lower(WordStr),
+    know_sets(Word, Lang).
 
--spec know_sets([mapsets:set()], language()) -> [binary()].
-know_sets([], _Lang) ->
-    [];
-know_sets([Set | Sets], Lang) ->
-    Words = know(Set, Lang),
-    case mapsets:size(Words) of
-        0 ->
-            know_sets(Sets, Lang);
+-spec know_sets([byte()], language()) -> [string(), ...].
+know_sets(Word, Lang) ->
+    Words = know(Word, Lang),
+    case Words of
+        [] ->
+            know_sets(lists:reverse(tl(lists:reverse(Word))), Lang);
         _ ->
-            mapsets:to_list(Words)
+            Words
     end.
 
--spec know(mapsets:set(), language()) -> mapsets:set().
-know(WordsSet, Lang) ->
-    [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
-    mapsets:intersection(WordsSet, KeysSet).
-
--spec edits1(binary()) -> [binary()].
-edits1(WordBinary) ->
-    Word = binary_to_list(WordBinary),
-    Splits = [lists:split(I, Word) || I <- lists:seq(0, length(Word))],
-    Acc1 = deletes(Splits, []),
-    Acc2 = transposes(Splits, Acc1),
-    Acc3 = replaces(Splits, Acc2),
-    Acc4 = inserts(Splits, Acc3),
-    lists:flatten(Acc4).
-
--spec deletes([tuple()], list()) -> list().
-deletes(Splits, Acc) ->
-    Result = [iolist_to_binary([Left, Right]) || {Left, [_ | Right]} <- Splits],
-    [Result | Acc].
-
--spec transposes([tuple()], list()) -> list().
-transposes(Splits, Acc) ->
-    Result = [iolist_to_binary([Left, B, A, Right]) || {Left, [A, B | Right]} <- Splits],
-    [Result | Acc].
-
--spec replaces([tuple()], list()) -> list().
-replaces(Splits, Acc) ->
-    Result =
-        [iolist_to_binary([Left, Char, Right]) || {Left, [_ | Right]} <- Splits, Char <- chars()],
-    [Result | Acc].
-
--spec inserts([tuple()], list()) -> list().
-inserts(Splits, Acc) ->
-    Result =
-        [iolist_to_binary([Left, Char, Right]) || {Left, Right} <- Splits, Char <- chars()],
-    [Result | Acc].
-
--spec edits2(binary()) -> [binary()].
-edits2(Word) ->
-    Result = [edits1(E1) || E1 <- edits1(Word)],
-    lists:flatten(Result).
-
--spec chars() -> string().
-chars() ->
-    "abcdefghijklmnopqrstuvwxyz-".
-
--spec empty_set() -> mapsets:set().
-empty_set() ->
-    mapsets:new().
+-spec know(string(), language()) -> [string(), ...] | [].
+know(Word, Lang) ->
+    [lists:flatten(Word ++ F) || F <- ets:match(dictionary_name(Lang), {Word ++ '$1'})].

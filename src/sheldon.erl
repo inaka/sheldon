@@ -72,7 +72,7 @@ do_check(Text, #{ignore_blocks := IgnoreBlocks} = Config) ->
 -spec add_candidates([sheldon_result:misspelled_word()], sheldon_config:config()) ->
                         [sheldon_result:misspelled_word()].
 add_candidates(MisspelledWords, #{lang := Lang}) ->
-    sheldon_suggestions_server:suggestions(MisspelledWords, Lang).
+    suggestions(MisspelledWords, Lang).
 
 -spec escape_blocks([line()], [sheldon_config:ignore_block()]) -> [line()].
 escape_blocks(Lines, IgnoreBlocks) ->
@@ -217,3 +217,13 @@ ignore(Word, _Config = #{ignore_words := IgnoredWords, ignore_patterns := Patter
     lists:member(
         string:to_lower(Word), IgnoredWords)
     orelse sheldon_utils:match_in_patterns(Word, Patterns).
+
+%%%%%%%%%%%%%%%%%%%%%%
+suggestions(Data, Lang) ->
+    suggestions(Data, Lang, []).
+
+suggestions([], _, Acc) ->
+    Acc;
+suggestions([#{word := Word} = MisspelledWord | T], Lang, Acc) ->
+    Candidates = sheldon_dictionary:candidates(Word, Lang),
+    suggestions(T, Lang, [MisspelledWord#{candidates => Candidates} | Acc]).

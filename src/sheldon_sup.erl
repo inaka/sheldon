@@ -58,9 +58,7 @@ init([]) ->
 
     Children = lists:map(fun get_child/1, SupportedLang),
 
-    SuggestionsSup = get_suggestions_sup(),
-
-    {ok, {SupFlags, [SuggestionsSup | Children]}}.
+    {ok, {SupFlags, Children}}.
 
 %%%===================================================================
 %%% Internal Functions
@@ -76,15 +74,3 @@ get_child(LangString) ->
       shutdown => brutal_kill,
       type => worker,
       modules => [sheldon_dictionary]}.
-
--spec get_suggestions_sup() -> supervisor:child_spec().
-get_suggestions_sup() ->
-    WPoolOptions =
-        [{workers, application:get_env(sheldon, suggestion_workers, 100)},
-         {worker, {sheldon_suggestions_server, no_args}}],
-    #{id => suggestions_sup,
-      start => {wpool, start_pool, [suggestions_pool, WPoolOptions]},
-      restart => permanent,
-      shutdown => brutal_kill,
-      type => supervisor,
-      modules => [wpool]}.
