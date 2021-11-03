@@ -184,13 +184,13 @@ suggest_words(_Config) ->
              line_number := 1,
              word := "speling"}]} =
         sheldon:check("speling is wrong, should suggest spelling among others"),
-    true = lists:member("spelling", Candidates),
+    true = lists:member("spellings", Candidates),
     #{bazinga := _,
       misspelled_words :=
           [#{candidates := [],
              line_number := 1,
-             word := "this_is_wrong"}]} =
-        sheldon:check("The next one is this_is_wrong, no suggestions for that"),
+             word := "this_is_wrong__________"}]} =
+        sheldon:check("The next one is this_is_wrong__________, no suggestions for that"),
     ok.
 
 -spec markdown_adapter(config()) -> ok.

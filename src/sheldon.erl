@@ -170,7 +170,7 @@ build_line(Words) ->
                   sheldon_config:config()) ->
                      [sheldon_result:misspelled_word()].
 check_lines([], MisspelledWords, _Config) ->
-    MisspelledWords;
+    lists:reverse(MisspelledWords);
 check_lines([{LineNumber, Line} | RestFile],
             MisspelledWords,
             Config = #{adapters := Adapters}) ->
