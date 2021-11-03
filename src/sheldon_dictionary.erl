@@ -154,39 +154,19 @@ create_ets(EtsName) ->
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
     Word = string:to_lower(WordStr),
-    know_sets(Word, Lang).
+    know(Word, Lang).
 
--spec know_sets([byte()], language()) -> [string(), ...].
-know_sets(Word, Lang) ->
-    Words = know(Word, Lang),
-    case Words of
-        [] ->
-            know_sets(lists:droplast(Word), Lang, 1);
-        _ ->
-            Words
-    end.
-
-know_sets(_, _, ?LIMIT) ->
-    [];
-know_sets([], _, ?LIMIT) ->
-    [];
-know_sets(Word, Lang, Attempt) ->
-    Words = know(Word, Lang),
-    case Words of
-        [] ->
-            know_sets(lists:droplast(Word), Lang, Attempt + 1);
-        _ ->
-            Words
-    end.
-
-
--spec know(string(), language()) -> [string(), ...] | [].
-know([], _) ->
-    [];
+-spec know(string(), language()) -> [string(), ...].
 know(Word, Lang) ->
+    know(Word, Lang, ?LIMIT).
+
+-spec know(string(), language(), integer()) -> [string(), ...] | [].
+know(Word, _, Attempt) when Word == []; Attempt == 0 ->
+    [];
+know(Word, Lang, Attempt) ->
     case ets:match(dictionary_name(Lang), {Word ++ '$1'}, ?LIMIT) of
-      {Result, _} ->
-          [lists:flatten(Word ++ R) || R <- Result];
-      '$end_of_table' ->
-          []
+        {Result, _} ->
+            [lists:flatten(Word ++ R) || R <- Result];
+        '$end_of_table' ->
+            know(lists:droplast(Word), Lang, Attempt - 1)
     end.
