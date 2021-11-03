@@ -33,6 +33,8 @@
 
 -export_type([language/0]).
 
+-define(LIMIT, 10).
+
 -type language() :: eng.
 
 %%%===================================================================
@@ -159,26 +161,30 @@ know_sets(Word, Lang) ->
     Words = know(Word, Lang),
     case Words of
         [] ->
-            know_sets(lists:reverse(tl(lists:reverse(Word))), Lang, 1);
+            know_sets(lists:droplast(Word), Lang, 1);
         _ ->
             Words
     end.
 
-know_sets(_, _, 10) ->
+know_sets(_, _, ?LIMIT) ->
+    [];
+know_sets([], _, ?LIMIT) ->
     [];
 know_sets(Word, Lang, Attempt) ->
     Words = know(Word, Lang),
     case Words of
         [] ->
-            know_sets(lists:reverse(tl(lists:reverse(Word))), Lang, Attempt + 1);
+            know_sets(lists:droplast(Word), Lang, Attempt + 1);
         _ ->
             Words
     end.
 
 
 -spec know(string(), language()) -> [string(), ...] | [].
+know([], _) ->
+    [];
 know(Word, Lang) ->
-    case ets:match(dictionary_name(Lang), {Word ++ '$1'}, 10) of
+    case ets:match(dictionary_name(Lang), {Word ++ '$1'}, ?LIMIT) of
       {Result, _} ->
           [lists:flatten(Word ++ R) || R <- Result];
       '$end_of_table' ->
