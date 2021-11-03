@@ -184,7 +184,8 @@ suggest_words(_Config) ->
              line_number := 1,
              word := "speling"}]} =
         sheldon:check("speling is wrong, should suggest spelling among others"),
-    true = lists:member("spellings", Candidates),
+    [Candidate | _] = Candidates,
+    true = nomatch =/= string:find(Candidate, "spel"),
     #{bazinga := _,
       misspelled_words :=
           [#{candidates := [],
