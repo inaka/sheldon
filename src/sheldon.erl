@@ -218,10 +218,15 @@ ignore(Word, _Config = #{ignore_words := IgnoredWords, ignore_patterns := Patter
         string:to_lower(Word), IgnoredWords)
     orelse sheldon_utils:match_in_patterns(Word, Patterns).
 
-%%%%%%%%%%%%%%%%%%%%%%
+-spec suggestions([sheldon_result:misspelled_word()], atom()) ->
+                     [sheldon_result:misspelled_word()].
 suggestions(Data, Lang) ->
     suggestions(Data, Lang, []).
 
+-spec suggestions([sheldon_result:misspelled_word()],
+                  atom(),
+                  [sheldon_result:misspelled_word()]) ->
+                     [sheldon_result:misspelled_word()].
 suggestions([], _, Acc) ->
     Acc;
 suggestions([#{word := Word} = MisspelledWord | T], Lang, Acc) ->
