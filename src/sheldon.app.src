@@ -6,8 +6,7 @@
   {applications, [
     kernel,
     stdlib,
-    emarkdown,
-    worker_pool
+    emarkdown
   ]},
   {modules, []},
   {mod, {sheldon_app, []}},
