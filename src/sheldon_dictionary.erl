@@ -34,6 +34,7 @@
 -export_type([language/0]).
 
 -define(LIMIT, 10).
+-define(WORD_SIZE_LIMIT, 45).
 
 -type language() :: eng.
 
@@ -161,7 +162,7 @@ know(Word, Lang) ->
     know(Word, Lang, ?LIMIT).
 
 -spec know(string(), language(), integer()) -> [string(), ...] | [].
-know(Word, _, Attempt) when Word == []; Attempt == 0 ->
+know(Word, _, Attempt) when Word == []; Attempt == 0; length(Word) > ?WORD_SIZE_LIMIT ->
     [];
 know(Word, Lang, Attempt) ->
     case ets:match(dictionary_name(Lang), {Word ++ '$1'}, ?LIMIT) of
