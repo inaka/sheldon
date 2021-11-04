@@ -49,17 +49,15 @@ start_link(Lang) ->
 member(Word, Lang) ->
     DictName = dictionary_name(Lang),
     WordLower = string:to_lower(Word),
-    ets:lookup(DictName, list_to_binary(WordLower)) =/= [].
+    persistent_term:get({DictName, list_to_binary(WordLower)}, []) =/= [].
 
 %% @doc returns a bazinga from the ETS
 -spec get_bazinga(language()) -> string().
 get_bazinga(Lang) ->
     BazingaName = bazinga_name(Lang),
-    Keys = ets:tab2list(BazingaName),
-    {Bazinga} =
-        lists:nth(
-            rand:uniform(length(Keys)), Keys),
-    Bazinga.
+    Keys = persistent_term:get(BazingaName),
+    lists:nth(
+        rand:uniform(length(Keys)), Keys).
 
 %% @doc returns the name of the dictionary given the language() as a
 %%      parameter
@@ -119,8 +117,9 @@ learn_language(Lang) ->
 set_bazingas(Lang) ->
     BazingaSource = [code:priv_dir(sheldon), "/lang/", atom_to_list(Lang), "/bazinga.txt"],
     BazingaName = bazinga_name(Lang),
-    _Bazingas = fill_ets(BazingaName, BazingaSource),
-    ok.
+    {ok, SourceBin} = file:read_file(BazingaSource),
+    Words = re:split(SourceBin, "\n"),
+    persistent_term:put(BazingaName, Words).
 
 -spec bazinga_name(language()) -> atom().
 bazinga_name(Lang) ->
@@ -133,14 +132,8 @@ bazinga_name(Lang) ->
 fill_ets(EtsName, Source) ->
     {ok, SourceBin} = file:read_file(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
-    ok = create_ets(EtsName),
-    ets:insert(EtsName, [{Word} || Word <- Words]),
+    [persistent_term:put({EtsName, Word}, Word) || Word <- Words],
     Words.
-
--spec create_ets(atom()) -> ok.
-create_ets(EtsName) ->
-    EtsName = ets:new(EtsName, [named_table, set, {read_concurrency, true}]),
-    ok.
 
 %%%===================================================================
 %%% Corrector Internal Funcions
@@ -160,10 +153,10 @@ candidates(WordStr, Lang) ->
 know([], _Lang, _, Acc) ->
     Acc;
 know([Set | Sets], Lang, DictName, Acc) ->
-    case ets:lookup(DictName, Set) of
-        [] ->
+    case persistent_term:get({DictName, Set}, undefined) of
+        undefined ->
             know(Sets, Lang, DictName, Acc);
-        [{Word}] ->
+        Word ->
             know(Sets, Lang, DictName, [binary_to_list(Word) | Acc])
     end.
 
