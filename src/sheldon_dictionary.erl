@@ -112,11 +112,7 @@ code_change(_OldVsn, State, _Extra) ->
 learn_language(Lang) ->
     LangSource = [code:priv_dir(sheldon), "/lang/", atom_to_list(Lang), "/dictionary.txt"],
     DictionaryName = dictionary_name(Lang),
-    Words = fill_ets(DictionaryName, LangSource),
-
-    % save the keys in set format in order to suggest words
-    KeysSet = mapsets:from_list(Words),
-    ets:insert(DictionaryName, {keys, KeysSet}),
+    _Words = fill_ets(DictionaryName, LangSource),
     ok.
 
 -spec set_bazingas(language()) -> ok.
@@ -143,7 +139,7 @@ fill_ets(EtsName, Source) ->
 
 -spec create_ets(atom()) -> ok.
 create_ets(EtsName) ->
-    EtsName = ets:new(EtsName, [named_table, duplicate_bag, {read_concurrency, true}]),
+    EtsName = ets:new(EtsName, [named_table, set, {read_concurrency, true}]),
     ok.
 
 %%%===================================================================
@@ -153,28 +149,23 @@ create_ets(EtsName) ->
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
     Word = list_to_binary(string:to_lower(WordStr)),
-    Set1 = mapsets:add_element(Word, empty_set()),
-    Set2 = mapsets:from_list(edits1(Word)),
-    Set3 = mapsets:from_list(edits2(Word)),
-    Candidates = know_sets([Set1, Set2, Set3], Lang),
-    [binary_to_list(Bin) || Bin <- Candidates].
+    Set1 = [Word],
+    Set2 = edits1(Word),
+    Set3 = edits2(Word),
+    DictName = dictionary_name(Lang),
+    Candidates = know(Set1 ++ Set2 ++ Set3, Lang, DictName, []),
+    Candidates.
 
--spec know_sets([mapsets:set()], language()) -> [binary()].
-know_sets([], _Lang) ->
-    [];
-know_sets([Set | Sets], Lang) ->
-    Words = know(Set, Lang),
-    case mapsets:size(Words) of
-        0 ->
-            know_sets(Sets, Lang);
-        _ ->
-            mapsets:to_list(Words)
+-spec know([binary()], language(), atom(), list()) -> [string()].
+know([], _Lang, _, Acc) ->
+    Acc;
+know([Set | Sets], Lang, DictName, Acc) ->
+    case ets:lookup(DictName, Set) of
+        [] ->
+            know(Sets, Lang, DictName, Acc);
+        [{Word}] ->
+            know(Sets, Lang, DictName, [binary_to_list(Word) | Acc])
     end.
-
--spec know(mapsets:set(), language()) -> mapsets:set().
-know(WordsSet, Lang) ->
-    [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
-    mapsets:intersection(WordsSet, KeysSet).
 
 -spec edits1(binary()) -> [binary()].
 edits1(WordBinary) ->
@@ -216,7 +207,3 @@ edits2(Word) ->
 -spec chars() -> string().
 chars() ->
     "abcdefghijklmnopqrstuvwxyz-".
-
--spec empty_set() -> mapsets:set().
-empty_set() ->
-    mapsets:new().
