@@ -33,6 +33,8 @@
 
 -export_type([language/0]).
 
+-define(CHARS, "abcdefghijklmnopqrstuvwxyz-").
+
 -type language() :: eng.
 
 %%%===================================================================
@@ -49,17 +51,15 @@ start_link(Lang) ->
 member(Word, Lang) ->
     DictName = dictionary_name(Lang),
     WordLower = string:to_lower(Word),
-    ets:lookup(DictName, list_to_binary(WordLower)) =/= [].
+    persistent_term:get({DictName, list_to_binary(WordLower)}, []) =/= [].
 
 %% @doc returns a bazinga from the ETS
 -spec get_bazinga(language()) -> string().
 get_bazinga(Lang) ->
     BazingaName = bazinga_name(Lang),
-    Keys = ets:tab2list(BazingaName),
-    {Bazinga} =
-        lists:nth(
-            rand:uniform(length(Keys)), Keys),
-    Bazinga.
+    Keys = persistent_term:get(BazingaName),
+    lists:nth(
+        rand:uniform(length(Keys)), Keys).
 
 %% @doc returns the name of the dictionary given the language() as a
 %%      parameter
@@ -112,19 +112,15 @@ code_change(_OldVsn, State, _Extra) ->
 learn_language(Lang) ->
     LangSource = [code:priv_dir(sheldon), "/lang/", atom_to_list(Lang), "/dictionary.txt"],
     DictionaryName = dictionary_name(Lang),
-    Words = fill_ets(DictionaryName, LangSource),
-
-    % save the keys in set format in order to suggest words
-    KeysSet = mapsets:from_list(Words),
-    ets:insert(DictionaryName, {keys, KeysSet}),
-    ok.
+    fill_cashe(DictionaryName, LangSource).
 
 -spec set_bazingas(language()) -> ok.
 set_bazingas(Lang) ->
     BazingaSource = [code:priv_dir(sheldon), "/lang/", atom_to_list(Lang), "/bazinga.txt"],
     BazingaName = bazinga_name(Lang),
-    _Bazingas = fill_ets(BazingaName, BazingaSource),
-    ok.
+    {ok, SourceBin} = file:read_file(BazingaSource),
+    Words = re:split(SourceBin, "\n"),
+    persistent_term:put(BazingaName, Words).
 
 -spec bazinga_name(language()) -> atom().
 bazinga_name(Lang) ->
@@ -133,17 +129,11 @@ bazinga_name(Lang) ->
             (atom_to_binary(Lang, utf8))/binary>>,
     binary_to_atom(Bin, utf8).
 
--spec fill_ets(atom(), term()) -> [binary()].
-fill_ets(EtsName, Source) ->
+-spec fill_cashe(atom(), term()) -> ok.
+fill_cashe(EtsName, Source) ->
     {ok, SourceBin} = file:read_file(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
-    ok = create_ets(EtsName),
-    ets:insert(EtsName, [{Word} || Word <- Words]),
-    Words.
-
--spec create_ets(atom()) -> ok.
-create_ets(EtsName) ->
-    EtsName = ets:new(EtsName, [named_table, duplicate_bag, {read_concurrency, true}]),
+    [persistent_term:put({EtsName, Word}, Word) || Word <- Words],
     ok.
 
 %%%===================================================================
@@ -153,70 +143,70 @@ create_ets(EtsName) ->
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
     Word = list_to_binary(string:to_lower(WordStr)),
-    Set1 = mapsets:add_element(Word, empty_set()),
-    Set2 = mapsets:from_list(edits1(Word)),
-    Set3 = mapsets:from_list(edits2(Word)),
-    Candidates = know_sets([Set1, Set2, Set3], Lang),
-    [binary_to_list(Bin) || Bin <- Candidates].
+    Acc = edits1(Word, []),
+    Result = edits2(Acc, []),
+    DictName = dictionary_name(Lang),
+    Candidates = know([Word | Result], Lang, DictName, []),
+    Candidates.
 
--spec know_sets([mapsets:set()], language()) -> [binary()].
-know_sets([], _Lang) ->
-    [];
-know_sets([Set | Sets], Lang) ->
-    Words = know(Set, Lang),
-    case mapsets:size(Words) of
-        0 ->
-            know_sets(Sets, Lang);
-        _ ->
-            mapsets:to_list(Words)
+-spec know([binary()], language(), atom(), list()) -> [string()].
+know([], _Lang, _, Acc) ->
+    Acc;
+know([Word | Words], Lang, DictName, Acc) ->
+    case persistent_term:get({DictName, Word}, undefined) of
+        undefined ->
+            know(Words, Lang, DictName, Acc);
+        Word ->
+            know(Words, Lang, DictName, [binary_to_list(Word) | Acc])
     end.
 
--spec know(mapsets:set(), language()) -> mapsets:set().
-know(WordsSet, Lang) ->
-    [{keys, KeysSet}] = ets:lookup(dictionary_name(Lang), keys),
-    mapsets:intersection(WordsSet, KeysSet).
-
--spec edits1(binary()) -> [binary()].
-edits1(WordBinary) ->
+-spec edits1(binary(), [binary()]) -> [binary()].
+edits1(WordBinary, Acc0) ->
     Word = binary_to_list(WordBinary),
     Splits = [lists:split(I, Word) || I <- lists:seq(0, length(Word))],
-    Acc1 = deletes(Splits, []),
+    Acc1 = deletes(Splits, Acc0),
     Acc2 = transposes(Splits, Acc1),
     Acc3 = replaces(Splits, Acc2),
-    Acc4 = inserts(Splits, Acc3),
-    lists:flatten(Acc4).
+    inserts(Splits, Acc3).
 
 -spec deletes([tuple()], list()) -> list().
-deletes(Splits, Acc) ->
-    Result = [iolist_to_binary([Left, Right]) || {Left, [_ | Right]} <- Splits],
-    [Result | Acc].
+deletes([], Acc) ->
+    Acc;
+deletes([{Left, [_ | Right]} | Splits], Acc) ->
+    deletes(Splits, [iolist_to_binary([Left, Right]) | Acc]);
+deletes([_ | Splits], Acc) ->
+    deletes(Splits, Acc).
 
 -spec transposes([tuple()], list()) -> list().
-transposes(Splits, Acc) ->
-    Result = [iolist_to_binary([Left, B, A, Right]) || {Left, [A, B | Right]} <- Splits],
-    [Result | Acc].
+transposes([], Acc) ->
+    Acc;
+transposes([{Left, [A, B | Right]} | Splits], Acc) ->
+    transposes(Splits, [iolist_to_binary([Left, B, A, Right]) | Acc]);
+transposes([_ | Splits], Acc) ->
+    transposes(Splits, Acc).
 
 -spec replaces([tuple()], list()) -> list().
-replaces(Splits, Acc) ->
-    Result =
-        [iolist_to_binary([Left, Char, Right]) || {Left, [_ | Right]} <- Splits, Char <- chars()],
-    [Result | Acc].
+replaces([], Acc) ->
+    Acc;
+replaces([{Left, [_ | Right]} | Splits], Acc) ->
+    replaces(Splits, chars(?CHARS, Left, Right, Acc));
+replaces([_ | Splits], Acc) ->
+    replaces(Splits, Acc).
 
 -spec inserts([tuple()], list()) -> list().
-inserts(Splits, Acc) ->
-    Result =
-        [iolist_to_binary([Left, Char, Right]) || {Left, Right} <- Splits, Char <- chars()],
-    [Result | Acc].
+inserts([], Acc) ->
+    Acc;
+inserts([{Left, Right} | Splits], Acc) ->
+    inserts(Splits, chars(?CHARS, Left, Right, Acc)).
 
--spec edits2(binary()) -> [binary()].
-edits2(Word) ->
-    Result = [edits1(E1) || E1 <- edits1(Word)],
-    lists:flatten(Result).
+-spec chars([integer()], string(), string(), list()) -> list().
+chars([], _, _, Acc) ->
+    Acc;
+chars([Char | Chars], Left, Right, Acc) ->
+    chars(Chars, Left, Right, [iolist_to_binary([Left, Char, Right]) | Acc]).
 
--spec chars() -> string().
-chars() ->
-    "abcdefghijklmnopqrstuvwxyz-".
-
--spec empty_set() -> mapsets:set().
-empty_set() ->
-    mapsets:new().
+-spec edits2([binary()], [binary()]) -> [binary()].
+edits2([], Acc) ->
+    Acc;
+edits2([H | T], Acc) ->
+    edits2(T, edits1(H, Acc)).
