@@ -33,8 +33,6 @@
 
 -export_type([language/0]).
 
--define(CHARS, "abcdefghijklmnopqrstuvwxyz-").
-
 -type language() :: eng.
 
 %%%===================================================================
@@ -50,7 +48,7 @@ start_link(Lang) ->
 -spec member(string(), language()) -> boolean().
 member(Word, Lang) ->
     DictName = dictionary_name(Lang),
-    WordLower = string:to_lower(Word),
+    WordLower = string:lowercase(Word),
     persistent_term:get({DictName, list_to_binary(WordLower)}, []) =/= [].
 
 %% @doc returns a bazinga from the ETS
@@ -130,83 +128,43 @@ bazinga_name(Lang) ->
     binary_to_atom(Bin, utf8).
 
 -spec fill_cashe(atom(), term()) -> ok.
-fill_cashe(EtsName, Source) ->
+fill_cashe(Name, Source) ->
     {ok, SourceBin} = file:read_file(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
-    [persistent_term:put({EtsName, Word}, Word) || Word <- Words],
-    ok.
+    Name = ets:new(Name, [named_table, bag, {read_concurrency, true}]),
 
-%%%===================================================================
-%%% Corrector Internal Funcions
-%%%===================================================================
+    [begin
+         persistent_term:put({Name, Word}, Word),
+         String = binary_to_list(Word),
+         [ets:insert(Name, {TypoWord, String}) || TypoWord <- typo_model(String)]
+     end
+     || Word <- Words],
+    ok.
 
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
-    Word = list_to_binary(string:to_lower(WordStr)),
-    Acc = edits1(Word, []),
-    Result = edits2(Acc, []),
-    DictName = dictionary_name(Lang),
-    Candidates = know([Word | Result], Lang, DictName, []),
-    Candidates.
+    Word = string:lowercase(WordStr),
+    MaybeWords = typo_model(Word),
+    DicName = dictionary_name(Lang),
+    [V || {_, V} <- lookup(DicName, MaybeWords, [])].
 
--spec know([binary()], language(), atom(), list()) -> [string()].
-know([], _Lang, _, Acc) ->
-    Acc;
-know([Word | Words], Lang, DictName, Acc) ->
-    case persistent_term:get({DictName, Word}, undefined) of
-        undefined ->
-            know(Words, Lang, DictName, Acc);
-        Word ->
-            know(Words, Lang, DictName, [binary_to_list(Word) | Acc])
-    end.
+%%%===================================================================
+%%% Internal Funcions
+%%%===================================================================
 
--spec edits1(binary(), [binary()]) -> [binary()].
-edits1(WordBinary, Acc0) ->
-    Word = binary_to_list(WordBinary),
-    Splits = [lists:split(I, Word) || I <- lists:seq(0, length(Word))],
-    Acc1 = deletes(Splits, Acc0),
-    Acc2 = transposes(Splits, Acc1),
-    Acc3 = replaces(Splits, Acc2),
-    inserts(Splits, Acc3).
+-spec lookup(atom(), [string()], list()) -> [tuple()].
+lookup(_, [], Acc) ->
+    lists:flatten(Acc);
+lookup(DicName, [Word | Words], Acc) ->
+    Result = ets:lookup(DicName, Word),
+    lookup(DicName, Words, [Result | Acc]).
 
--spec deletes([tuple()], list()) -> list().
-deletes([], Acc) ->
-    Acc;
-deletes([{Left, [_ | Right]} | Splits], Acc) ->
-    deletes(Splits, [iolist_to_binary([Left, Right]) | Acc]);
-deletes([_ | Splits], Acc) ->
-    deletes(Splits, Acc).
-
--spec transposes([tuple()], list()) -> list().
-transposes([], Acc) ->
-    Acc;
-transposes([{Left, [A, B | Right]} | Splits], Acc) ->
-    transposes(Splits, [iolist_to_binary([Left, B, A, Right]) | Acc]);
-transposes([_ | Splits], Acc) ->
-    transposes(Splits, Acc).
-
--spec replaces([tuple()], list()) -> list().
-replaces([], Acc) ->
-    Acc;
-replaces([{Left, [_ | Right]} | Splits], Acc) ->
-    replaces(Splits, chars(?CHARS, Left, Right, Acc));
-replaces([_ | Splits], Acc) ->
-    replaces(Splits, Acc).
-
--spec inserts([tuple()], list()) -> list().
-inserts([], Acc) ->
-    Acc;
-inserts([{Left, Right} | Splits], Acc) ->
-    inserts(Splits, chars(?CHARS, Left, Right, Acc)).
-
--spec chars([integer()], string(), string(), list()) -> list().
-chars([], _, _, Acc) ->
-    Acc;
-chars([Char | Chars], Left, Right, Acc) ->
-    chars(Chars, Left, Right, [iolist_to_binary([Left, Char, Right]) | Acc]).
-
--spec edits2([binary()], [binary()]) -> [binary()].
-edits2([], Acc) ->
-    Acc;
-edits2([H | T], Acc) ->
-    edits2(T, edits1(H, Acc)).
+-spec typo_model(string()) -> [string()].
+typo_model(Word) ->
+    lists:foldl(fun ({Left, [_ | Right]}, Acc) ->
+                        [lists:concat([Left, Right]) | Acc];
+                    (_, Acc) ->
+                        Acc
+                end,
+                [Word],
+                [lists:split(I, Word) || I <- lists:seq(0, length(Word))]).
