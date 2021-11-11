@@ -38,16 +38,34 @@ start() ->
 
 %% @doc Checks the spelling of the iodata() received as a parameter.
 %% @equiv check(Text, sheldon_config:default())
--spec check(iodata()) -> sheldon_result:result().
+-spec check(iodata() |
+            unicode:latin1_chardata() |
+            unicode:chardata() |
+            unicode:external_chardata()) ->
+               sheldon_result:result().
+check(Text) when is_list(Text) ->
+    check(unicode:characters_to_binary(Text), sheldon_config:default());
+check(Text) when is_binary(Text) ->
+    check(Text, sheldon_config:default());
 check(Text) ->
-    check(Text, sheldon_config:default()).
+    {error, Text}.
 
 %% @doc Checks the spelling of the iodata() received as a parameter.
 %%      It also accepts Config parameter
--spec check(iodata(), sheldon_config:config()) -> sheldon_result:result().
-check(Text, Config1) ->
+-spec check(iodata() |
+            unicode:latin1_chardata() |
+            unicode:chardata() |
+            unicode:external_chardata(),
+            sheldon_config:config()) ->
+               sheldon_result:result().
+check(Text, Config1) when is_list(Text) ->
     Config = sheldon_config:normalize(Config1),
-    do_check(Text, Config).
+    do_check(unicode:characters_to_binary(Text), Config);
+check(Text, Config1) when is_binary(Text) ->
+    Config = sheldon_config:normalize(Config1),
+    do_check(Text, Config);
+check(Text, Config) ->
+    {error, {Text, Config}}.
 
 %%%===================================================================
 %%% Internal Functions
@@ -55,13 +73,12 @@ check(Text, Config1) ->
 
 -spec do_check(iodata(), sheldon_config:config()) -> sheldon_result:result().
 do_check(Text, #{ignore_blocks := IgnoreBlocks} = Config) ->
-    Lines = re:split(Text, "\n"),
+    Lines = string:split(Text, "\n", all),
 
     % Create lines in format {lineNumber, Line}
     Lines2 =
         lists:zip(
             lists:seq(1, length(Lines)), Lines),
-
     Lines3 = escape_blocks(Lines2, IgnoreBlocks),
     Misspelled = check_lines(Lines3, [], Config),
 
@@ -96,7 +113,7 @@ escape_blocks([Line | Rest], IgnoreBlocks, Lines) ->
 escape_blocks({in_block, _CloseBlock, []}, _, Lines) ->
     Lines;
 escape_blocks({in_block, CloseBlock, [{LineNumber, Line} | Rest]}, IgnoreBlocks, Lines) ->
-    Words = re:split(Line, " "),
+    Words = string:split(Line, " ", all),
     case find_close_pattern(Words, CloseBlock) of
         {closed, RestLine2} ->
             escape_blocks([{LineNumber, build_line(RestLine2)} | Rest], IgnoreBlocks, Lines);
@@ -107,7 +124,7 @@ escape_blocks({in_block, CloseBlock, [{LineNumber, Line} | Rest]}, IgnoreBlocks,
 -spec clean_line(line(), [sheldon_config:ignore_blocks()]) ->
                     line() | {in_block, sheldon_config:regex(), line()}.
 clean_line({LineNumber, Line}, IgnoreBlocks) ->
-    Words = re:split(Line, " "),
+    Words = string:split(Line, " ", all),
     case find_block(Words, IgnoreBlocks, []) of
         {in_block, CloseBlock, CleanLine} ->
             {in_block, CloseBlock, {LineNumber, build_line(CleanLine)}};
@@ -175,7 +192,7 @@ check_lines([{LineNumber, Line} | RestFile],
             MisspelledWords,
             Config = #{adapters := Adapters}) ->
     Line1 = sheldon_config:apply_adapters(Line, Adapters),
-    WordsOrdered = re:split(Line1, " "),
+    WordsOrdered = string:split(Line1, " ", all),
     Words = lists:reverse(WordsOrdered),
     {ok, Result} = check_words(Words, [], Config),
     MisspelledWords2 =

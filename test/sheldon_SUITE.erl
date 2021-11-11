@@ -8,7 +8,8 @@
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
 -export([basic_check/1, iodata_check/1, ignore_words/1, ignore_patterns/1, multiline/1,
-         ignore_blocks/1, suggest_words/1, markdown_adapter/1, markdown_adapter_badrpc/1]).
+         ignore_blocks/1, suggest_words/1, markdown_adapter/1, markdown_adapter_badrpc/1,
+         unicode_check/1]).
 
 -type config() :: [{atom(), term()}].
 
@@ -26,7 +27,8 @@ all() ->
      ignore_blocks,
      suggest_words,
      markdown_adapter,
-     markdown_adapter_badrpc].
+     markdown_adapter_badrpc,
+     unicode_check].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -291,6 +293,18 @@ markdown_adapter_badrpc(_Config) ->
     ok = sheldon:check("hello! Nice to see you all"),
 
     [_] = meck:unload(),
+    ok.
+
+-spec unicode_check(config()) -> ok.
+unicode_check(_Config) ->
+    #{misspelled_words :=
+          [#{candidates := [],
+             line_number := 1,
+             word := [208, 159, 209, 128, 208, 184, 208, 178, 208, 181, 209, 130]},
+           #{candidates := [],
+             line_number := 1,
+             word := [208, 156, 208, 184, 209, 128]}]} =
+        sheldon:check("Привет Мир!"),
     ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
