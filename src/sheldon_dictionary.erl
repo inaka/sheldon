@@ -129,7 +129,7 @@ bazinga_name(Lang) ->
 
 -spec fill_cashe(atom(), term()) -> ok.
 fill_cashe(Name, Source) ->
-    {ok, SourceBin} = file:read_file(Source),
+    SourceBin = generate_dictionary(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
     Name = ets:new(Name, [named_table, bag, {read_concurrency, true}]),
 
@@ -168,3 +168,30 @@ typo_model(Word) ->
                 end,
                 [Word],
                 [lists:split(I, Word) || I <- lists:seq(0, length(Word))]).
+
+-spec generate_dictionary(term()) -> binary().
+generate_dictionary(Source) ->
+    DefaultDictionary = application:get_env(sheldon, default_dictionary, undefined),
+    AdditionalDictionaries = application:get_env(sheldon, additional_dictionaries, []),
+    case {DefaultDictionary, AdditionalDictionaries} of
+        {undefined, []} ->
+            {ok, SourceBin} = file:read_file(Source),
+            SourceBin;
+        {undefined, [_ | _] = AdditionalDictionaries} ->
+            concat_dictionaries(Source, AdditionalDictionaries);
+        {[_ | _] = DefaultDictionary, []} ->
+            {ok, SourceBin} = file:read_file(DefaultDictionary),
+            SourceBin;
+        {[_ | _] = DefaultDictionary, [_ | _] = AdditionalDictionaries} ->
+            concat_dictionaries(DefaultDictionary, AdditionalDictionaries)
+    end.
+
+-spec concat_dictionaries(list(), list() | []) -> binary().
+concat_dictionaries(Source, [_ | _] = AdditionalDictionaries) ->
+    {ok, SourceBin} = file:read_file(Source),
+    lists:foldl(fun(Path, Acc) ->
+                   {ok, Bin} = file:read_file(Path),
+                   <<Acc/binary, "\n", Bin/binary>>
+                end,
+                SourceBin,
+                AdditionalDictionaries).
