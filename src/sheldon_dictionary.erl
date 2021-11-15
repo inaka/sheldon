@@ -129,7 +129,7 @@ bazinga_name(Lang) ->
 
 -spec fill_cashe(atom(), term()) -> ok.
 fill_cashe(Name, Source) ->
-    {ok, SourceBin} = file:read_file(Source),
+    SourceBin = generate_dictionary(Source),
     Words = re:split(SourceBin, "\n"), % one word per line
     Name = ets:new(Name, [named_table, bag, {read_concurrency, true}]),
 
@@ -168,3 +168,19 @@ typo_model(Word) ->
                 end,
                 [Word],
                 [lists:split(I, Word) || I <- lists:seq(0, length(Word))]).
+
+-spec generate_dictionary(file:name_all()) -> binary().
+generate_dictionary(Source) ->
+    DefaultDictionary = application:get_env(sheldon, default_dictionary, Source),
+    AdditionalDictionaries = application:get_env(sheldon, additional_dictionaries, []),
+    concat_dictionaries(DefaultDictionary, AdditionalDictionaries).
+
+-spec concat_dictionaries(file:name_all(), [file:name_all()] | []) -> binary().
+concat_dictionaries(Source, AdditionalDictionaries) ->
+    {ok, SourceBin} = file:read_file(Source),
+    lists:foldl(fun(Path, Acc) ->
+                   {ok, Bin} = file:read_file(Path),
+                   <<Acc/binary, "\n", Bin/binary>>
+                end,
+                SourceBin,
+                AdditionalDictionaries).
