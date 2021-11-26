@@ -31,5 +31,12 @@
 
 -spec adapt(binary()) -> iodata().
 adapt(Line) ->
-    Line1 = emarkdown:to_html(Line),
-    html_adapter:adapt(Line1).
+    %% Prepare links
+    L0 = binary:replace(Line,
+                        [<<"`">>, <<"[">>, <<"]">>, <<"(">>, <<")">>],
+                        <<" ">>,
+                        [global]),
+    %% Delete links in line
+    L1 = re:replace(L0, "(http\S*?)(\.*?\s)", " ", [global, {return, binary}]),
+    %% Delete other symbols
+    binary:replace(L1, [<<"`">>, <<"<">>, <<">">>, <<"*">>, <<"#">>], <<>>, [global]).

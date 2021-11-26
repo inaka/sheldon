@@ -26,7 +26,8 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, member/2, dictionary_name/1, get_bazinga/1, candidates/2]).
+-export([start_link/1, member/2, dictionary_name/1, get_bazinga/1, candidates/2,
+         trim_for_windows/1]).
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2,
          code_change/3]).
@@ -116,7 +117,8 @@ learn_language(Lang) ->
 set_bazingas(Lang) ->
     BazingaSource = [code:priv_dir(sheldon), "/lang/", atom_to_list(Lang), "/bazinga.txt"],
     BazingaName = bazinga_name(Lang),
-    {ok, SourceBin} = file:read_file(BazingaSource),
+    {ok, SourceBin0} = file:read_file(BazingaSource),
+    SourceBin = trim_for_windows(SourceBin0),
     Words = re:split(SourceBin, "\n"),
     persistent_term:put(BazingaName, Words).
 
@@ -129,7 +131,8 @@ bazinga_name(Lang) ->
 
 -spec fill_cashe(atom(), term()) -> ok.
 fill_cashe(Name, Source) ->
-    SourceBin = generate_dictionary(Source),
+    SourceBin0 = generate_dictionary(Source),
+    SourceBin = trim_for_windows(SourceBin0),
     Words = re:split(SourceBin, "\n"), % one word per line
     Name = ets:new(Name, [named_table, bag, {read_concurrency, true}]),
 
@@ -184,3 +187,13 @@ concat_dictionaries(Source, AdditionalDictionaries) ->
                 end,
                 SourceBin,
                 AdditionalDictionaries).
+
+-spec trim_for_windows(binary()) -> binary().
+trim_for_windows(Text) ->
+    %% Fow Windows remove '\r'
+    case os:type() of
+        {win32, _} ->
+            binary:replace(Text, [<<"\r">>], <<>>, [global]);
+        _ ->
+            Text
+    end.
