@@ -73,7 +73,8 @@ check(Text, Config) ->
 
 -spec do_check(iodata(), sheldon_config:config()) -> sheldon_result:result().
 do_check(Text, #{ignore_blocks := IgnoreBlocks} = Config) ->
-    Lines = string:split(Text, "\n", all),
+    Lines0 = sheldon_dictionary:trim_for_windows(Text),
+    Lines = string:split(Lines0, "\n", all),
 
     % Create lines in format {lineNumber, Line}
     Lines2 =
