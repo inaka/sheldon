@@ -104,7 +104,7 @@ Check [this](examples/README.md) out.
 
 ## Dependencies
 
-- Erlang/OTP 23+
+**Required OTP version 23** or or higher. We only provide guarantees that the system runs on OTP23+ since that's what we're testing it in, but the `minimum_otp_vsn` is `"21"` because some systems where **sheldon** is integrated do require it.
 
 <!-- Badges -->
 [hexpm]: https://hex.pm/packages/sheldon
