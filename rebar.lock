@@ -1,8 +1,8 @@
 {"1.2.0",
-[{<<"worker_pool">>,{pkg,<<"worker_pool">>,<<"5.0.0">>},0}]}.
+[{<<"worker_pool">>,{pkg,<<"worker_pool">>,<<"5.1.0">>},0}]}.
 [
 {pkg_hash,[
- {<<"worker_pool">>, <<"B4B867BDF7E4D6451ED82C47BD72E53C24C04518C0AB821FDC6D28BA0F8EEDE2">>}]},
+ {<<"worker_pool">>, <<"61BA970F856AF8B2D85232ADC8E4B990FA1719F396FCDAD954702946395ADD80">>}]},
 {pkg_hash_ext,[
- {<<"worker_pool">>, <<"1F9EBE0650BD4B2C4BD34A5BF59D29DEA37BF80C6C22AB4BE2BD02C6BA264BB6">>}]}
+ {<<"worker_pool">>, <<"59A975728E5C2B69A23D1C5EBC3B63251EC4ACBF4E9D25F1C619E3AD4B550813">>}]}
 ].
