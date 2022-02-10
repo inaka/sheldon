@@ -146,7 +146,7 @@ fill_cashe(Name, Source) ->
 
 -spec candidates(string(), language()) -> [string()].
 candidates(WordStr, Lang) ->
-    Word = string:lowercase(WordStr),
+    Word = WordStr,
     MaybeWords = typo_model(Word),
     DicName = dictionary_name(Lang),
     [V || {_, V} <- lookup(DicName, MaybeWords, [])].
